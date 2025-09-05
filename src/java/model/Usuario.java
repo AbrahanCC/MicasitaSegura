@@ -6,6 +6,7 @@ public class Usuario {
     private String apellidos;
     private String dpi;
     private String numeroCasa;
+    private String lote;
     private String correo;
     private String username;
     private String passHash;
@@ -14,12 +15,13 @@ public class Usuario {
 
     public Usuario() { }
 
-    public Usuario(int id, String nombre, String apellidos, String dpi, String numeroCasa, String correo, String username, String passHash, int rolId, boolean activo) {
+    public Usuario(int id, String nombre, String apellidos, String dpi, String numeroCasa, String lote, String correo, String username, String passHash, int rolId, boolean activo) {
         this.id = id;
         this.nombre = nombre;
         this.apellidos = apellidos;
         this.dpi = dpi;
         this.numeroCasa = numeroCasa;
+        this.lote = lote;
         this.correo = correo;
         this.username = username;
         this.passHash = passHash;
@@ -60,6 +62,14 @@ public class Usuario {
     }
     public void setNumeroCasa(String numeroCasa) {
         this.numeroCasa = numeroCasa;
+    }
+    
+    public String getLote() {
+        return lote;
+    }
+
+    public void setLote(String lote) {
+        this.lote = lote;
     }
 
     public String getCorreo() {

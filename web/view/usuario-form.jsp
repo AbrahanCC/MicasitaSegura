@@ -1,10 +1,14 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="model.Usuario,java.util.List,model.Rol"%>
 <%
+  // Datos del form
   Usuario u = (Usuario)request.getAttribute("u");
   boolean edit = (u!=null && u.getId()>0);
-  List<Rol> roles = (List<Rol>)request.getAttribute("roles");
+  List<Rol> roles = (List<Rol>)request.getAttribute("roles");   // RN4
+  List<String> lotes = (List<String>)request.getAttribute("lotes"); // RN1
+  List<String> casas = (List<String>)request.getAttribute("casas"); // RN1
   String err = (String)request.getAttribute("error");
+  String ok  = (String)request.getAttribute("ok");
   String ctx = request.getContextPath();
 %>
 <!DOCTYPE html>
@@ -17,6 +21,8 @@
   <link href="<%=ctx%>/assets/css/app.css" rel="stylesheet">
 </head>
 <body>
+<%@ include file="/view/_menu.jsp" %>
+
 <div class="container py-4 d-flex justify-content-center" style="min-height:100vh;">
   <div class="glass p-4 p-sm-5 w-100" style="max-width:780px;">
     <div class="d-flex align-items-center mb-3">
@@ -30,9 +36,8 @@
       </div>
     </div>
 
-    <% if (err != null) { %>
-      <div class="alert alert-danger"><%= err %></div>
-    <% } %>
+    <% if (err != null) { %><div class="alert alert-danger"><%= err %></div><% } %>
+    <% if ("user_created".equals(ok)) { %><div class="alert alert-success">Usuario creado correctamente.</div><% } %>
 
     <form id="frmUsuario" method="post" action="<%=ctx%>/usuarios" novalidate>
       <input type="hidden" name="id" value="<%=edit?u.getId():""%>">
@@ -40,15 +45,30 @@
       <div class="row g-3">
         <div class="col-sm-6">
           <label class="form-label">DPI</label>
-          <input class="form-control" name="dpi" id="dpi" required pattern="[0-9]{4,15}"
-                 title="Solo dígitos (4-15)"
+          <input class="form-control" name="dpi" id="dpi" required pattern="[0-9]{4,25}"
                  value="<%=edit && u.getDpi()!=null ? u.getDpi() : ""%>">
         </div>
-        <div class="col-sm-6">
+
+        <%-- RN1: Lote --%>
+        <div class="col-sm-3">
+          <label class="form-label">Lote</label>
+          <select name="lote" id="lote" class="form-select" required>
+            <option value="">Seleccione…</option>
+            <% if (lotes!=null) for(String l : lotes){ %>
+              <option value="<%=l%>" <%= edit && u.getLote()!=null && u.getLote().equals(l) ? "selected":"" %>><%=l%></option>
+            <% } %>
+          </select>
+        </div>
+
+        <%-- RN1: Número de casa --%>
+        <div class="col-sm-3">
           <label class="form-label">Número de casa</label>
-          <input class="form-control" name="numeroCasa" id="numeroCasa" pattern="[A-Za-z0-9\\-]{0,20}"
-                 title="Máx. 20 caracteres alfanuméricos"
-                 value="<%=edit && u.getNumeroCasa()!=null ? u.getNumeroCasa() : ""%>">
+          <select name="numeroCasa" id="numeroCasa" class="form-select" required>
+            <option value="">Seleccione…</option>
+            <% if (casas!=null) for(String c : casas){ %>
+              <option value="<%=c%>" <%= edit && u.getNumeroCasa()!=null && u.getNumeroCasa().equals(c) ? "selected":"" %>><%=c%></option>
+            <% } %>
+          </select>
         </div>
 
         <div class="col-sm-6">
@@ -67,6 +87,7 @@
           <input type="email" class="form-control" name="correo" id="correo" required
                  value="<%=edit && u.getCorreo()!=null ? u.getCorreo() : ""%>">
         </div>
+
         <div class="col-sm-6">
           <label class="form-label">Usuario</label>
           <input class="form-control" name="username" id="username" required
@@ -75,17 +96,15 @@
 
         <div class="col-sm-6 position-relative">
           <label class="form-label">Contraseña <small class="text-muted">(vacío para no cambiar)</small></label>
-          <input type="password" class="form-control" name="pass" id="pass">
-          <i class="bi bi-eye toggle-pass" id="togglePass" style="position:absolute;right:.75rem;top:58%;cursor:pointer;"></i>
+          <input type="password" class="form-control" name="pass" id="pass" <%= edit ? "" : "required" %>>
         </div>
 
+        <%-- RN4: Rol --%>
         <div class="col-sm-6">
           <label class="form-label">Rol</label>
-          <select name="rolId" class="form-select" required>
+          <select name="rolId" id="rolId" class="form-select" required>
             <% if (roles!=null) for(Rol r : roles){ %>
-              <option value="<%=r.getId()%>" <%= edit && u.getRolId()==r.getId() ? "selected":"" %>>
-                <%=r.getNombre()%>
-              </option>
+              <option value="<%=r.getId()%>" <%= edit && u.getRolId()==r.getId() ? "selected":"" %>><%=r.getNombre()%></option>
             <% } %>
           </select>
         </div>
@@ -100,7 +119,8 @@
       </div>
 
       <div class="d-flex gap-2 mt-4">
-        <button type="submit" id="btnGuardar" class="btn btn-brand" disabled>Guardar</button>
+        <button type="submit" id="btnGuardar" class="btn btn-brand">Guardar</button>
+        <button type="reset" class="btn btn-outline-secondary">Limpiar</button>
         <a href="<%=ctx%>/usuarios" class="btn btn-outline-secondary">Cancelar</a>
       </div>
     </form>
@@ -108,26 +128,30 @@
 </div>
 
 <script>
+  // RN1 en UI: si rol = GUARDIA(3) => deshabilitar Lote y Número (y quitar required)
   (function () {
-    var edit = <%= edit ? "true" : "false" %>;
-    var f = document.getElementById('frmUsuario');
-    var btn = document.getElementById('btnGuardar');
-    var pass = document.getElementById('pass');
-    var toggle = document.getElementById('togglePass');
+    const rol = document.getElementById('rolId');
+    const lote = document.getElementById('lote');
+    const num  = document.getElementById('numeroCasa');
+    const pass = document.getElementById('pass');
+    const form = document.getElementById('frmUsuario');
+    const edit = <%= edit ? "true" : "false" %>;
 
-    function okPass() { return edit ? true : (pass.value && pass.value.trim().length > 0); }
-    function validate() { btn.disabled = !(f.checkValidity() && okPass()); }
+    function applyRN1() {
+      const esGuardia = rol.value === '3';
+      lote.disabled = esGuardia; num.disabled = esGuardia;
+      lote.required = !esGuardia; num.required = !esGuardia;
+      if (esGuardia) { lote.value = ""; num.value = ""; }
+    }
 
-    f.addEventListener('input', validate);
-    f.addEventListener('change', validate);
-    validate();
+    function validate() {
+      // RN2 apoyo cliente (en servidor ya está)
+      if (!edit) pass.required = true;
+    }
 
-    if (toggle) toggle.addEventListener('click', function () {
-      var show = pass.type === 'password';
-      pass.type = show ? 'text' : 'password';
-      toggle.classList.toggle('bi-eye-slash', show);
-      toggle.classList.toggle('bi-eye', !show);
-    });
+    rol.addEventListener('change', applyRN1);
+    form.addEventListener('input', validate);
+    applyRN1(); validate();
   })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

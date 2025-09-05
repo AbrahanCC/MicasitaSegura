@@ -21,9 +21,9 @@ public class PingDbServlet extends HttpServlet {
             DBConnection db = new DBConnection();   
             try (Connection cn = db.getConnection()) {  
                 if (cn != null && !cn.isClosed()) {
-                    out.println("Conexión exitosa a la base de datos ✅");
+                    out.println("Conexión exitosa a la base de datos ");
                 } else {
-                    out.println("No se pudo abrir conexión ❌");
+                    out.println("No se pudo abrir conexión ");
                 }
             }
         } catch (Exception e) {

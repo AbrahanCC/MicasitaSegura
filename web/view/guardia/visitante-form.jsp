@@ -28,16 +28,24 @@
       </div>
     </div>
 
-    <!-- Mensajes -->
-    <c:if test="${not empty msg}">
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        ${msg}
-        <c:if test="${not empty token}">
-          <div class="mt-1"><strong>Token:</strong> ${token}</div>
-        </c:if>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <%-- Confirmación + botones de escaneo --%>
+    <c:if test="${ok == true}">
+      <div class="alert alert-success d-flex align-items-center justify-content-between">
+        <div>
+          <strong>QR emitido para:</strong>
+          <span>${nombreMostrado}</span>
+          <c:if test="${not empty token}">
+            <small class="text-muted ms-2">(token: ${token})</small>
+          </c:if>
+        </div>
+        <div class="d-flex gap-2">
+          <a class="btn btn-success btn-sm" href="${pageContext.request.contextPath}/view/guardia/scan.jsp?auto=1&dir=in">Validar (Entrada)</a>
+          <a class="btn btn-outline-success btn-sm" href="${pageContext.request.contextPath}/view/guardia/scan.jsp?auto=1&dir=out">Validar (Salida)</a>
+        </div>
       </div>
     </c:if>
+
+    <%-- Mensajes genéricos --%>
     <c:if test="${not empty error}">
       <div class="alert alert-danger alert-dismissible fade show" role="alert">
         ${error}
@@ -45,24 +53,24 @@
       </div>
     </c:if>
 
-    <form class="row g-3" method="post" action="${pageContext.request.contextPath}/visitantes">
-      <!-- Nombre -->
+    <%-- Enviar a /api/emit --%>
+    <form id="frmVisitante" class="row g-3" method="post" action="${pageContext.request.contextPath}/api/emit">
+      <input type="hidden" name="destino" id="destino">
+
       <div class="col-md-6">
         <label class="form-label">Nombre</label>
         <input class="form-control" name="nombre" required>
       </div>
 
-      <!-- Motivo -->
       <div class="col-md-6">
         <label class="form-label">Motivo</label>
         <input class="form-control" name="motivo" placeholder="Ej. entrega, visita, servicio" required>
       </div>
 
-      <!-- Lote / Número de casa -->
       <div class="col-sm-3">
         <label class="form-label">Lote</label>
-        <select class="form-select" name="lote" required>
-          <option value="">(Sin lote)</option>
+        <select class="form-select" name="lote" id="lote" required>
+          <option value="">Seleccione…</option>
           <%
             String[] lotes = "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z".split(",");
             for (String l : lotes) { %>
@@ -72,34 +80,41 @@
       </div>
       <div class="col-sm-3">
         <label class="form-label">Número de casa</label>
-        <input class="form-control" type="number" name="numeroCasa" min="1" max="999" required>
+        <input class="form-control" type="number" name="numeroCasa" id="numeroCasa" min="1" max="999" required>
       </div>
 
-      <!-- Email (opcional) -->
       <div class="col-sm-6">
         <label class="form-label">Email del visitante (opcional)</label>
         <input class="form-control" type="email" name="email" placeholder="alguien@correo.com">
-        <div class="form-text">Si lo completas, el QR se enviará por correo.</div>
+        <div class="form-text">Si lo completas, el QR se enviará por correo (imagen inline).</div>
       </div>
 
-      <!-- Info de reglas -->
       <div class="col-12">
-        <div class="alert alert-info d-flex align-items-start">
-          <div>
-            <strong>Regla del pase:</strong> se genera automáticamente, es de <strong>1 solo uso</strong> y
-            <strong>vence en 10 minutos</strong>. Al guardar se abrirá la cámara para validarlo.
-          </div>
+        <div class="alert alert-info">
+          <strong>Regla del pase:</strong> <b>2 usos</b> Sin límite por tiempo.
         </div>
       </div>
 
       <div class="col-12 d-flex gap-2 mt-2">
         <button class="btn btn-brand" type="submit"><i class="bi bi-save me-1"></i>Guardar</button>
-        <a class="btn btn-outline-secondary" href="<%=ctx%>/visitantes"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+        <a class="btn btn-outline-secondary" href="<%=ctx%>/"><i class="bi bi-arrow-left me-1"></i>Volver</a>
       </div>
     </form>
 
   </div>
 </div>
+
+<script>
+  // Armar destino LOTE-NUMERO antes de enviar
+  (function () {
+    const f = document.getElementById('frmVisitante');
+    f.addEventListener('submit', function () {
+      const lote = (document.getElementById('lote').value || '').trim();
+      const num  = (document.getElementById('numeroCasa').value || '').trim();
+      if (lote && num) document.getElementById('destino').value = lote.toUpperCase() + '-' + num;
+    });
+  })();
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -4,13 +4,14 @@
   List<Usuario> data = (List<Usuario>) request.getAttribute("data");
   String ctx = request.getContextPath();
 
+  // Home según rol (1=ADMIN, 2=RESIDENTE, 3=GUARDIA)
   HttpSession s = request.getSession(false);
   Integer rol = (s == null) ? null : (Integer) s.getAttribute("rol");
   String destinoInicio = ctx + "/index.jsp";
   if (rol != null) {
       if (rol == 1) destinoInicio = ctx + "/view/admin/dashboard.jsp";
       else if (rol == 2) destinoInicio = ctx + "/view/residente/qr.jsp";
-      else if (rol == 3) destinoInicio = ctx + "/view/guardia/control.jsp";
+      else if (rol == 3) destinoInicio = ctx + "/view/guardia/scan.jsp";
   }
 %>
 <!DOCTYPE html>
@@ -23,6 +24,9 @@
   <link href="<%=ctx%>/assets/css/app.css" rel="stylesheet">
 </head>
 <body>
+
+<%@ include file="/view/_menu.jsp" %>
+
 <div class="container py-4 d-flex justify-content-center" style="min-height:100vh;">
   <div class="glass p-4 p-sm-5 w-100" style="max-width:1100px;">
     <div class="d-flex align-items-center mb-3">
@@ -49,6 +53,7 @@
             <th>Nombre</th>
             <th>Apellidos</th>
             <th>Correo</th>
+            <th>Lote</th>
             <th>Número de casa</th>
             <th>Rol</th>
             <th class="text-center">Acciones</th>
@@ -59,7 +64,7 @@
           if (data == null || data.isEmpty()) {
         %>
           <tr>
-            <td colspan="7" class="text-center text-muted py-4">No hay usuarios activos.</td>
+            <td colspan="8" class="text-center text-muted py-4">No hay usuarios activos.</td>
           </tr>
         <%
           } else {
@@ -70,8 +75,13 @@
             <td><%= u.getNombre() %></td>
             <td><%= u.getApellidos() %></td>
             <td><%= u.getCorreo() %></td>
-            <td><%= u.getNumeroCasa() %></td>
-            <td><span class="badge text-bg-secondary"><%= u.getRolId() %></span></td>
+            <td><%= u.getLote()==null?"—":u.getLote() %></td>
+            <td><%= u.getNumeroCasa()==null?"—":u.getNumeroCasa() %></td>
+            <td>
+              <span class="badge text-bg-secondary">
+                <%= (u.getRolId()==1?"Administrador":(u.getRolId()==2?"Residente":(u.getRolId()==3?"Guardia":"?"))) %>
+              </span>
+            </td>
             <td class="text-center">
               <a href="<%=ctx%>/usuarios?op=edit&id=<%=u.getId()%>" class="btn btn-sm btn-outline-primary me-1">
                 <i class="bi bi-pencil-square"></i>
@@ -92,6 +102,7 @@
     </div>
   </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

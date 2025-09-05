@@ -1,91 +1,78 @@
 package controller;
 
-import util.DBConnection;
-
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
-import java.io.IOException;
-import java.sql.*;
 import dao.AccesoLogDAO;
 import dao.AccesoLogDAOImpl;
 import model.AccesoLog;
 import service.GateService;
+import util.PasswordUtil;
 
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import java.io.IOException;
 
-
+// Residente: ilimitado. Visita: 2 usos. Registra bitácora. Abre talanquera si OK.
 @WebServlet("/api/validate")
 public class ValidateServlet extends HttpServlet {
+
+  private final AccesoLogDAO logDao = new AccesoLogDAOImpl();
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String token = req.getParameter("token");
+    String originParam = req.getParameter("origin"); // in|out|qr|null
+    String origin = (originParam == null || originParam.trim().isEmpty()) ? "qr" : originParam.trim();
+
     boolean ok = false;
     String reason = "invalid";
 
     if (token != null && !token.trim().isEmpty()) {
-      String select = "SELECT id FROM visitantes WHERE token=? AND estado='emitido' AND expira_en > NOW()";
-      String update = "UPDATE visitantes SET estado='consumido' WHERE id=?";
-
-      try (Connection c = DBConnection.getConnectionStatic();
-           PreparedStatement ps = c.prepareStatement(select)) {
-
-        ps.setString(1, token);
-        try (ResultSet rs = ps.executeQuery()) {
-          if (rs.next()) {
-            int id = rs.getInt(1);
-            try (PreparedStatement up = c.prepareStatement(update)) {
-              up.setInt(1, id);
-              up.executeUpdate();
-              ok = true;
-              reason = "ok";
-            }
-          } else {
-            reason = "expired_or_used_or_not_found";
-          }
+      try {
+        if (token.startsWith("R:")) {
+          ok = validateResident(token);
+          reason = ok ? "ok" : "invalid_resident_token";
+        } else {
+          ok = logDao.consumeOneUseIfAvailable(token, 2);
+          reason = ok ? "ok" : "uses_exhausted_or_invalid";
         }
       } catch (Exception e) {
         reason = "server_error";
       }
+    } else {
+      reason = "token_missing";
     }
-    
-    // 1) Registrar en bitácora
-try {
-  AccesoLogDAO logDao = new AccesoLogDAOImpl();
-  AccesoLog log = new AccesoLog();
-  log.setTipo("VISITA");
-  log.setToken(token);
-  log.setResultado(ok ? "OK" : "DENEGADO");
-  log.setMotivo(ok ? null : reason);
-  log.setOrigin("qr");
-  logDao.insertar(log);
-} catch (Exception e) {
-  // si falla la bitácora no rompemos la validación
-}
 
-// 2) Si es válido, abrir talanquera
-if (ok) {
-  boolean gateOk = new GateService().abrir();
-  if (!gateOk) {
-    // opcional: podrías actualizar la bitácora con motivo "fallo_esp"
-    // o añadir un segundo registro con resultado=ERROR
-  }
-}
+    // Bitácora
+    try {
+      AccesoLog log = new AccesoLog();
+      log.setTipo(token != null && token.startsWith("R:") ? "RESIDENTE" : "VISITA");
+      log.setToken(token);
+      log.setResultado(ok ? "OK" : "DENEGADO");
+      log.setMotivo(ok ? null : reason);
+      log.setOrigin(origin);
+      logDao.insertar(log);
+    } catch (Exception ignored) {}
 
+    // Apertura
+    if (ok) {
+      try { new GateService().abrir(); } catch (Exception ignored) {}
+    }
+
+    // Respuesta
     resp.setContentType("application/json; charset=UTF-8");
     resp.getWriter().write("{\"valid\":" + ok + ",\"reason\":\"" + reason + "\"}");
-    
-    // === Abrir talanquera si el visitante es válido ===
-if (ok) {
-  try {
-    boolean gateOk = new service.GateService().abrir();
-    if (!gateOk) {
-      System.err.println("No se pudo abrir la talanquera (ESP no respondió 200).");
-    }
-  } catch (Exception ex) {
-    System.err.println("Error abriendo talanquera: " + ex.getMessage());
   }
-}
 
-
+  private boolean validateResident(String token) {
+    try {
+      String[] parts = token.split(":");
+      if (parts.length != 3) return false;
+      int id = Integer.parseInt(parts[1]);
+      String firma = parts[2];
+      String secret = System.getProperty("RESIDENT_SECRET", "residentes2025");
+      String expected = PasswordUtil.sha256(secret + ":" + id).substring(0, 32);
+      return expected.equals(firma);
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

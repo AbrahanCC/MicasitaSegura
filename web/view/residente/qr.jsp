@@ -13,11 +13,8 @@ String uname = (String) session.getAttribute("uname");
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link href="<%=ctx%>/assets/css/app.css" rel="stylesheet">
   <style>
-    .qr-box{
-      width: 240px; height: 240px; border: 2px dashed rgba(0,0,0,.15);
-      border-radius: 20px; display:flex; align-items:center; justify-content:center;
-      margin: 0 auto; background:#fff;
-    }
+    .qr-box{width:240px;height:240px;border:2px dashed rgba(0,0,0,.15);border-radius:20px;
+            display:flex;align-items:center;justify-content:center;margin:0 auto;background:#fff;}
   </style>
 </head>
 <body>
@@ -36,20 +33,13 @@ String uname = (String) session.getAttribute("uname");
 
     <div class="text-center">
       <div class="qr-box mb-3">
-    
-             <img src="<%=ctx%>/qr?op=me" class="img-fluid" alt="Mi QR">
-        -->
-        <span class="text-muted">QR aquí</span>
+        <!-- PNG generado por /qr con el mismo token que el email -->
+        <img src="<%=ctx%>/qr?op=me" class="img-fluid" alt="Mi QR">
       </div>
 
-      <div class="d-flex justify-content-center gap-2">
-        <a class="btn btn-outline-secondary" href="<%=ctx%>/directorio">
-          <i class="bi bi-search me-1"></i>Directorio
-        </a>
-        <button class="btn btn-brand" type="button">
-          <i class="bi bi-download me-1"></i>Descargar
-        </button>
-      </div>
+      <a class="btn btn-brand" href="<%=ctx%>/qr?op=me&download=1">
+        <i class="bi bi-download me-1"></i>Descargar
+      </a>
     </div>
   </div>
 </div>

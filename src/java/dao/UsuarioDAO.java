@@ -15,6 +15,5 @@ public interface UsuarioDAO {
     Usuario buscarPorIdentificador(String ident);
     void actualizarPassword(int id, String nuevoHash);
 
- 
     List<Usuario> buscarDirectorio(String nombres, String apellidos, String lote, String numeroCasa);
 }
