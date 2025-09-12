@@ -1,8 +1,35 @@
-/build/
-/dist/
-/nbproject/private/
+# === Carpetas específicas de NetBeans ===
+nbproject/private/
+build/
+dist/
+nbbuild/
+nbdist/
+.nbm/
+
+# === Dependencias locales ===
+lib/
+
+# === Archivos de Maven ===
+target/
+
+# === Archivos del IDE ===
+*.swp
+*~
+*.bak
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+
+# === Archivos del sistema ===
 *.class
 *.war
-*.log
-/.idea/
-/.vscode/
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# === Configuración personal ===
+.idea/
+.vscode/
+*.iml
