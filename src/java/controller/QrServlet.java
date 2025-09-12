@@ -1,5 +1,5 @@
 package controller;
-
+//vivsitante dos usos y residente uso limitado
 import util.QRUtil;
 import util.TokenUtil;
 

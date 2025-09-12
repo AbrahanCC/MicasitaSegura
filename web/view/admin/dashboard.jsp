@@ -40,7 +40,7 @@
     <!-- Acciones del admin -->
     <div class="d-grid gap-3">
       <a class="btn btn-brand btn-lg" href="${pageContext.request.contextPath}/usuarios">
-        <i class="bi bi-people me-2"></i>Gestión de Usuarios
+        <i class="bi bi-people me-2"></i>Mantenimiento de Usuarios 
       </a>
     </div>
 

@@ -67,7 +67,8 @@ public class UsuarioController extends HttpServlet {
                 req.getRequestDispatcher("/view/usuario-lista.jsp").forward(req, resp);
         }
     }
-
+    
+    //Opcion guardar usuario cuando esten llenos los campos 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
@@ -153,7 +154,7 @@ public class UsuarioController extends HttpServlet {
                     u.setPassHash(null);
                 }
                 usuarioDAO.actualizar(u);
-            } else { // crear
+            } else { // crear campos de casa y loes completos 
                 if (!Validador.noVacio(pass)) {
                     req.setAttribute("error", "La contraseña es obligatoria para crear un usuario.");
                     req.setAttribute("u", u);
@@ -183,7 +184,7 @@ public class UsuarioController extends HttpServlet {
         }
     }
 
-    // Duplicados → mensaje claro
+    // Duplicados3
     private String mensajeDuplicado(Throwable ex) {
         Throwable t = ex;
         while (t != null) {

@@ -1,5 +1,5 @@
 package service;
-
+//clase para pruebas hay que iliminar//
 import util.DBConnection;
 
 import java.sql.Connection;

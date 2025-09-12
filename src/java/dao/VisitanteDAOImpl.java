@@ -9,44 +9,38 @@ import java.util.List;
 
 public class VisitanteDAOImpl implements VisitanteDAO {
 
+    // Mapea únicamente las columnas que existen en la base
     private Visitante map(ResultSet rs) throws Exception {
         Visitante v = new Visitante();
         v.setId(rs.getInt("id"));
         v.setNombre(rs.getString("nombre"));
         v.setDpi(rs.getString("dpi"));
         v.setMotivo(rs.getString("motivo"));
-        v.setFechaHora(rs.getTimestamp("fecha_hora"));
         v.setDestinoNumeroCasa(rs.getString("destino_numero_casa"));
-        // nuevos
         v.setEmail(rs.getString("email"));
         v.setToken(rs.getString("token"));
         v.setExpiraEn(rs.getTimestamp("expira_en"));
-        v.setEstado(rs.getString("estado")); // "emitido", "consumido", "caducado"
+        v.setEstado(rs.getString("estado"));
         v.setCreadoEn(rs.getTimestamp("creado_en"));
-        
-        Object guardia = rs.getObject("creado_por_guardia_id");
-        v.setCreadoPorGuardiaId(guardia == null ? null : ((Number)guardia).intValue());
+        // columna creado_por_guardia_id eliminada del mapeo
+        v.setUsedCount(rs.getInt("used_count"));
         return v;
     }
 
     @Override
     public boolean crear(Visitante v) {
-        // INSERT dinámico: incluimos solo columnas con valor no-nulo para respetar DEFAULTs
-        StringBuilder cols = new StringBuilder("nombre,dpi,motivo,destino_numero_casa,creado_por_guardia_id");
-        StringBuilder vals = new StringBuilder("?,?,?,?,?");
+        // columnas reales en la tabla (sin creado_por_guardia_id)
+        StringBuilder cols = new StringBuilder(
+                "nombre,dpi,motivo,destino_numero_casa,used_count"
+        );
+        StringBuilder vals = new StringBuilder("?,?,?,?,0");
         List<Object> params = new ArrayList<>();
 
         params.add(v.getNombre());
         params.add(v.getDpi());
         params.add(v.getMotivo());
         params.add(v.getDestinoNumeroCasa());
-        params.add(v.getCreadoPorGuardiaId());
 
-        if (v.getFechaHora() != null) {
-            cols.append(",fecha_hora");
-            vals.append(",?");
-            params.add(v.getFechaHora());
-        }
         if (v.getEmail() != null && !v.getEmail().trim().isEmpty()) {
             cols.append(",email");
             vals.append(",?");
@@ -65,7 +59,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
         if (v.getEstado() != null && !v.getEstado().trim().isEmpty()) {
             cols.append(",estado");
             vals.append(",?");
-            params.add(v.getEstado().trim()); // emitido|consumido|caducado
+            params.add(v.getEstado().trim());
         }
 
         String sql = "INSERT INTO visitantes(" + cols + ") VALUES (" + vals + ")";
@@ -81,7 +75,6 @@ public class VisitanteDAOImpl implements VisitanteDAO {
             return ps.executeUpdate() == 1;
 
         } catch (SQLIntegrityConstraintViolationException dup) {
-            // token duplicado (uq_token)
             throw new RuntimeException("Token ya existe para otro visitante.", dup);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -91,19 +84,20 @@ public class VisitanteDAOImpl implements VisitanteDAO {
     @Override
     public List<Visitante> listar(String desde, String hasta, String destinoNumeroCasa, String dpi) {
         List<Visitante> out = new ArrayList<>();
+        // SELECT sin la columna eliminado
         StringBuilder sql = new StringBuilder(
-            "SELECT id,nombre,dpi,motivo,fecha_hora,destino_numero_casa," +
-            "email,token,expira_en,estado,creado_en,creado_por_guardia_id " +
-            "FROM visitantes WHERE 1=1"
+                "SELECT id,nombre,dpi,motivo,destino_numero_casa," +
+                        "email,token,expira_en,estado,creado_en,used_count " +
+                        "FROM visitantes WHERE 1=1"
         );
         List<Object> params = new ArrayList<>();
 
         if (desde != null && !desde.trim().isEmpty()) {
-            sql.append(" AND fecha_hora >= ?");
+            sql.append(" AND creado_en >= ?");
             params.add(Timestamp.valueOf(desde.trim() + " 00:00:00"));
         }
         if (hasta != null && !hasta.trim().isEmpty()) {
-            sql.append(" AND fecha_hora <= ?");
+            sql.append(" AND creado_en <= ?");
             params.add(Timestamp.valueOf(hasta.trim() + " 23:59:59"));
         }
         if (destinoNumeroCasa != null && !destinoNumeroCasa.trim().isEmpty()) {
@@ -115,7 +109,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
             params.add(dpi.trim());
         }
 
-        sql.append(" ORDER BY fecha_hora DESC");
+        sql.append(" ORDER BY creado_en DESC");
 
         try (Connection cn = new DBConnection().getConnection();
              PreparedStatement ps = cn.prepareStatement(sql.toString())) {
@@ -130,13 +124,16 @@ public class VisitanteDAOImpl implements VisitanteDAO {
         return out;
     }
 
-    /** Buscar un pase válido por token (no caducado ni consumido) */
+    @Override
     public Visitante obtenerPaseVigentePorToken(String token) {
-        String sql = "SELECT id,nombre,dpi,motivo,fecha_hora,destino_numero_casa," +
-                     "email,token,expira_en,estado,creado_en,creado_por_guardia_id " +
-                     "FROM visitantes " +
-                     "WHERE token=? AND estado='emitido' AND (expira_en IS NULL OR expira_en >= NOW()) " +
-                     "LIMIT 1";
+        // SELECT sin la columna eliminado
+        String sql =
+                "SELECT id,nombre,dpi,motivo,destino_numero_casa," +
+                        "email,token,expira_en,estado,creado_en,used_count " +
+                        "FROM visitantes " +
+                        "WHERE token=? AND estado='emitido' " +
+                        "AND (expira_en IS NULL OR expira_en >= NOW()) " +
+                        "AND used_count < 2 LIMIT 1";
         try (Connection cn = new DBConnection().getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, token);
@@ -148,9 +145,14 @@ public class VisitanteDAOImpl implements VisitanteDAO {
         }
     }
 
-    /** Marcar como consumido un pase */
+    @Override
     public boolean marcarConsumidoPorToken(String token) {
-        String sql = "UPDATE visitantes SET estado='consumido' WHERE token=? AND estado='emitido'";
+        // actualiza usado y cambia estado
+        String sql =
+                "UPDATE visitantes " +
+                        "SET used_count = used_count + 1, " +
+                        "    estado = CASE WHEN used_count + 1 >= 2 THEN 'consumido' ELSE estado END " +
+                        "WHERE token=? AND estado='emitido' AND used_count < 2";
         try (Connection cn = new DBConnection().getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, token);

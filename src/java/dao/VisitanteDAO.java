@@ -11,4 +11,3 @@ public interface VisitanteDAO {
     Visitante obtenerPaseVigentePorToken(String token); // estado='emitido' y no caducado
     boolean marcarConsumidoPorToken(String token);      // set estado='consumido'
 }
-

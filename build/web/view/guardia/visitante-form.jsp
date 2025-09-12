@@ -28,24 +28,15 @@
       </div>
     </div>
 
-    <%-- Confirmación + botones de escaneo --%>
+    <!-- Confirmación -->
     <c:if test="${ok == true}">
-      <div class="alert alert-success d-flex align-items-center justify-content-between">
-        <div>
-          <strong>QR emitido para:</strong>
-          <span>${nombreMostrado}</span>
-          <c:if test="${not empty token}">
-            <small class="text-muted ms-2">(token: ${token})</small>
-          </c:if>
-        </div>
-        <div class="d-flex gap-2">
-          <a class="btn btn-success btn-sm" href="${pageContext.request.contextPath}/view/guardia/scan.jsp?auto=1&dir=in">Validar (Entrada)</a>
-          <a class="btn btn-outline-success btn-sm" href="${pageContext.request.contextPath}/view/guardia/scan.jsp?auto=1&dir=out">Validar (Salida)</a>
-        </div>
+      <div class="alert alert-success">
+        <strong>QR emitido para:</strong>
+        <span>${nombreMostrado}</span>
       </div>
     </c:if>
 
-    <%-- Mensajes genéricos --%>
+    <!-- Mensajes -->
     <c:if test="${not empty error}">
       <div class="alert alert-danger alert-dismissible fade show" role="alert">
         ${error}
@@ -53,7 +44,7 @@
       </div>
     </c:if>
 
-    <%-- Enviar a /api/emit --%>
+    <!-- Formulario -->
     <form id="frmVisitante" class="row g-3" method="post" action="${pageContext.request.contextPath}/api/emit">
       <input type="hidden" name="destino" id="destino">
 
@@ -78,6 +69,7 @@
           <% } %>
         </select>
       </div>
+
       <div class="col-sm-3">
         <label class="form-label">Número de casa</label>
         <input class="form-control" type="number" name="numeroCasa" id="numeroCasa" min="1" max="999" required>
@@ -91,7 +83,7 @@
 
       <div class="col-12">
         <div class="alert alert-info">
-          <strong>Regla del pase:</strong> <b>2 usos</b> Sin límite por tiempo.
+          <strong>Regla del pase:</strong> <b>2 usos</b> • Sin límite por tiempo.
         </div>
       </div>
 

@@ -37,6 +37,10 @@
     const statusEl = document.getElementById('status');
     const overlay  = document.getElementById('overlay');
 
+    const params = new URLSearchParams(location.search);
+    const dirParam = (params.get('dir') || '').toLowerCase(); // 'in' | 'out' | ''
+    const auto = params.get('auto') === '1';
+
     function setStatus(msg, ok) {
       statusEl.className = ok === true ? 'ok' : ok === false ? 'fail' : '';
       statusEl.textContent = msg;
@@ -51,11 +55,14 @@
       try { const u = new URL(text); return u.searchParams.get('token') || text; }
       catch { return text; }
     }
-    async function validate(token) {
-      const url = base + "/api/validate?token=" + encodeURIComponent(token);
+    async function validate(token, dir) {
+      // enviamos token + dirección (entrada/salida) + fuente 'cam'
+      const url = base + "/api/validate?token=" + encodeURIComponent(token)
+                           + (dir ? "&dir=" + encodeURIComponent(dir) : "")
+                           + "&origin=cam";
       const resp = await fetch(url, { method: "GET" });
       if (!resp.ok) throw new Error("HTTP " + resp.status);
-      return await resp.json(); // {valid, reason}
+      return await resp.json(); // {valid, reason, used_count?}
     }
 
     const config = {
@@ -79,12 +86,23 @@
           setStatus("Procesando…", null);
           const token = extractToken(decodedText);
           try {
-            const j = await validate(token);
-            if (j.valid) { setStatus("VÁLIDO — apertura en curso…", true); showOverlay("ACCESO PERMITIDO", true); }
-            else { setStatus("DENEGADO: " + (j.reason || "desconocido"), false); showOverlay("ACCESO DENEGADO", false); }
-          } catch (e) { setStatus("Error al validar: " + e.message, false); showOverlay("ERROR DE VALIDACIÓN", false); }
+            const j = await validate(token, dirParam);
+            if (j.valid) {
+              const info = j.used_count != null ? ` (usos: ${j.used_count}/2)` : "";
+              setStatus("VÁLIDO — apertura en curso…" + info, true);
+              showOverlay("ACCESO PERMITIDO", true);
+            } else {
+              setStatus("DENEGADO: " + (j.reason || "desconocido"), false);
+              showOverlay("ACCESO DENEGADO", false);
+            }
+          } catch (e) {
+            setStatus("Error al validar: " + e.message, false);
+            showOverlay("ERROR DE VALIDACIÓN", false);
+          }
+          // Evitar dobles lecturas: reanudar tras 1.5s
           setTimeout(() => startScanner(), 1500);
         };
+
         const onScanFailure = (_) => {};
         await html5QrCode.start(camId, config, onScanSuccess, onScanFailure);
         setStatus("Apunta un QR a la cámara…", null);
@@ -93,10 +111,18 @@
       }
     }
 
-    // Arranca SIEMPRE automáticamente para Guardia/Admin
     window.addEventListener('load', async () => {
-      try { const s = await navigator.mediaDevices.getUserMedia({ video: { width:{ideal:1280}, height:{ideal:720}, facingMode:"environment" }, audio:false }); s.getTracks().forEach(t => t.stop()); } catch (_) {}
-      startScanner();
+      if (auto) {
+        // Pide permiso “silencioso” y libera para no bloquear start()
+        try {
+          const s = await navigator.mediaDevices.getUserMedia({ video: { width:{ideal:1280}, height:{ideal:720}, facingMode:"environment" }, audio:false });
+          s.getTracks().forEach(t => t.stop());
+        } catch (_) {}
+        startScanner();
+      } else {
+        setStatus("Listo. Presente un QR para validar.", null);
+        startScanner();
+      }
     });
   </script>
 </body>

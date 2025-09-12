@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.List;
 
 /** Controlador de vistas para Visitantes (solo GET). */
-@WebServlet("/visitantes") //visitantes -> lista / form / scan
+@WebServlet("/visitantes") // visitantes -> lista / form / scan
 public class VisitanteController extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
@@ -21,8 +21,10 @@ public class VisitanteController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        req.setCharacterEncoding("UTF-8"); //evita problemas con acentos
+
         // op: new | scan | list (default)
-        String op = val(req.getParameter("op"), "list");
+        String op = val(req.getParameter("op"), "list").toLowerCase(); //normaliza
 
         switch (op) {
             case "new":
@@ -36,12 +38,12 @@ public class VisitanteController extends HttpServlet {
                 return;
 
             default: // list
-                String desde   = trim(req.getParameter("desde"));
-                String hasta   = trim(req.getParameter("hasta"));
-                String destino = trim(req.getParameter("destinoNumeroCasa"));
-                String dpi     = trim(req.getParameter("dpi"));
+                String desde   = nz(req.getParameter("desde"));
+                String hasta   = nz(req.getParameter("hasta"));
+                String destino = nz(req.getParameter("destinoNumeroCasa"));
+                String dpi     = nz(req.getParameter("dpi"));
 
-                List<Visitante> data = visitanteDAO.listar(desde, hasta, destino, dpi);
+                List<Visitante> data = visitanteDAO.listar(desde, hasta, destino, dpi); //El DAO 
                 req.setAttribute("data", data);
                 req.getRequestDispatcher("/view/guardia/visitante-lista.jsp").forward(req, resp);
         }
@@ -50,12 +52,12 @@ public class VisitanteController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        // No emitir aquí (evita lógica duplicada). Usar /api/emit.
+        
         resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
                 "Usa POST " + req.getContextPath() + "/api/emit para emitir el pase de visita.");
     }
 
     /* Helpers */
-    private static String trim(String s) { return s == null ? "" : s.trim(); }
+    private static String nz(String s) { return s == null ? "" : s.trim(); } //Evita null
     private static String val(String v, String def) { return (v == null || v.isEmpty()) ? def : v; }
 }

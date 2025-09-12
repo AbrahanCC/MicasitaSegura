@@ -40,7 +40,7 @@
           <i class="bi bi-house-door"></i> Inicio
         </a>
         <a href="<%=ctx%>/usuarios?op=new" class="btn btn-brand">
-          <i class="bi bi-person-plus"></i> Nuevo usuario
+          <i class="bi bi-person-plus"></i> Crear Usuario
         </a>
       </div>
     </div>
@@ -50,8 +50,8 @@
         <thead class="table-light">
           <tr>
             <th>DPI usuario</th>
-            <th>Nombre</th>
-            <th>Apellidos</th>
+            <th>Nombre del Usuario</th>
+            <th>Apellidos del Usuario</th>
             <th>Correo</th>
             <th>Lote</th>
             <th>Número de casa</th>

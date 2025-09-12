@@ -44,7 +44,7 @@
 
       <div class="row g-3">
         <div class="col-sm-6">
-          <label class="form-label">DPI</label>
+          <label class="form-label">DPI del residente</label>
           <input class="form-control" name="dpi" id="dpi" required pattern="[0-9]{4,25}"
                  value="<%=edit && u.getDpi()!=null ? u.getDpi() : ""%>">
         </div>
@@ -95,13 +95,13 @@
         </div>
 
         <div class="col-sm-6 position-relative">
-          <label class="form-label">Contraseña <small class="text-muted">(vacío para no cambiar)</small></label>
+          <label class="form-label">Contraseña <small class="text-muted">Ingrese su contraseña</small></label>
           <input type="password" class="form-control" name="pass" id="pass" <%= edit ? "" : "required" %>>
         </div>
 
-        <%-- RN4: Rol --%>
+        <%-- RN4: Rol Catalogo de roles --%>
         <div class="col-sm-6">
-          <label class="form-label">Rol</label>
+          <label class="form-label">Rol del usuario</label>
           <select name="rolId" id="rolId" class="form-select" required>
             <% if (roles!=null) for(Rol r : roles){ %>
               <option value="<%=r.getId()%>" <%= edit && u.getRolId()==r.getId() ? "selected":"" %>><%=r.getNombre()%></option>
@@ -128,7 +128,7 @@
 </div>
 
 <script>
-  // RN1 en UI: si rol = GUARDIA(3) => deshabilitar Lote y Número (y quitar required)
+  // si rol = GUARDIA(3) => deshabilitar Lote y Número y quitar required
   (function () {
     const rol = document.getElementById('rolId');
     const lote = document.getElementById('lote');

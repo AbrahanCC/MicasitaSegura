@@ -44,7 +44,7 @@ public class AuthFilter implements Filter {
 
         Integer rol = (Integer) s.getAttribute("rol"); // 1=ADMIN, 2=RESIDENTE, 3=GUARDIA
 
-        // Autorización por prefijo/ruta
+        // Autorización por rol /ruta
         if (uri.startsWith(ctx + "/view/admin/")) {
             if (rol == null || rol != 1) { resp.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
         } else if (uri.startsWith(ctx + "/view/residente/")) {

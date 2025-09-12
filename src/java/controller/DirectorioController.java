@@ -11,7 +11,7 @@ import java.util.List;
 
 public class DirectorioController extends HttpServlet {
     private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
-
+//limpiar formulario
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String op = req.getParameter("op");
@@ -33,7 +33,7 @@ public class DirectorioController extends HttpServlet {
             req.getRequestDispatcher("/view/residente/directorio.jsp").forward(req, resp);
             return;
         }
-
+//buscar por nombre etc
         boolean hayFiltros = !nombres.isEmpty() || !apellidos.isEmpty() || (!loteVacio && !numVacio);
         if (hayFiltros) {
             List<Usuario> lista = usuarioDAO.buscarDirectorio(nombres, apellidos, lote, numeroCasa);

@@ -10,20 +10,22 @@ public class Visitante {
     private String motivo;
     private Timestamp fechaHora;
     private String destinoNumeroCasa;
-    private Integer creadoPorGuardiaId;   // mejor como Integer, puede ser null
+    private Integer creadoPorGuardiaId;   
 
-    // Nuevos campos (pases)
+    // Campos para pases
     private String email;
     private String token;
     private Timestamp expiraEn;
-    private String estado;   // emitido | consumido | caducado
+    private String estado;   
     private Timestamp creadoEn;
+    private int usedCount;   
 
     public Visitante() {}
 
     public Visitante(int id, String nombre, String dpi, String motivo, Timestamp fechaHora,
                      String destinoNumeroCasa, Integer creadoPorGuardiaId,
-                     String email, String token, Timestamp expiraEn, String estado, Timestamp creadoEn) {
+                     String email, String token, Timestamp expiraEn,
+                     String estado, Timestamp creadoEn, int usedCount) {
         this.id = id;
         this.nombre = nombre;
         this.dpi = dpi;
@@ -36,6 +38,7 @@ public class Visitante {
         this.expiraEn = expiraEn;
         this.estado = estado;
         this.creadoEn = creadoEn;
+        this.usedCount = usedCount;
     }
 
     // ===== Getters & Setters =====
@@ -75,6 +78,9 @@ public class Visitante {
     public Timestamp getCreadoEn() { return creadoEn; }
     public void setCreadoEn(Timestamp creadoEn) { this.creadoEn = creadoEn; }
 
+    public int getUsedCount() { return usedCount; }
+    public void setUsedCount(int usedCount) { this.usedCount = usedCount; }
+
     @Override
     public String toString() {
         return "Visitante{" +
@@ -90,6 +96,7 @@ public class Visitante {
                 ", expiraEn=" + expiraEn +
                 ", estado='" + estado + '\'' +
                 ", creadoEn=" + creadoEn +
+                ", usedCount=" + usedCount +
                 '}';
     }
 }

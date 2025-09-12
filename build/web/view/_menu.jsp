@@ -27,7 +27,7 @@
           </li>
         <% } %>
 
-        <%-- Guardia: solo registrar y escanear (no lista ni directorio) --%>
+        <%-- Guardia: registrar + escanear --%>
         <% if (_mrol != null && _mrol == 3) { %>
           <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/visitantes?op=new">Registrar visitante</a></li>
           <li class="nav-item">
@@ -37,13 +37,24 @@
           </li>
         <% } %>
 
-        <%-- Residente: solo Mi QR --%>
+        <%-- Residente: Mi QR + Directorio + Registrar visitante + Escanear --%>
         <% if (_mrol != null && _mrol == 2) { %>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/view/residente/qr.jsp">
               <i class="bi bi-qr-code me-1"></i>Mi QR
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
+              <i class="bi bi-people me-1"></i>Directorio
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/visitantes?op=new">
+              <i class="bi bi-person-plus me-1"></i>Registrar visitante
+            </a>
+          </li>
+         
         <% } %>
       </ul>
 

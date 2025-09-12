@@ -59,7 +59,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         }
     }
 
-    // Crea usuario. Acepta numero_casa / lote NULL para guardia (RN1)
+    // Crea usuario y numero_casa o lote NULL para guardia 
     @Override
     public boolean crear(Usuario u) {
         String sql = "INSERT INTO usuarios(dpi,nombre,apellidos,correo,numero_casa,lote,username,password_hash,rol_id,activo) " +
@@ -89,7 +89,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             // RN3: enviar QR solo a RESIDENTE (rol_id = 2)
             if (ok && u.getRolId() == 2) {
                 try {
-                    // ← MISMO token que servirá /qr (centralizado)
+                    // ← MISMO token que servirá para mostrar el qr en la vista de miqr
                     String token = TokenUtil.generateResidentToken(u.getId());
 
                     // Base configurable (evita hardcode). Defaults: http://localhost:8080/MiCasitaSegura
