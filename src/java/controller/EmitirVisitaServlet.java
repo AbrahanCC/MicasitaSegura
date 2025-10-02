@@ -9,7 +9,6 @@ import javax.servlet.http.*;
 import javax.servlet.*;
 import java.io.IOException;
 
-// Emite QR de VISITA con 2 usos y reenvía al form con botones de escaneo.
 @WebServlet("/api/emit")
 public class EmitirVisitaServlet extends HttpServlet {
   private final EmisionVisitanteService emision = new EmisionVisitanteService();
@@ -20,32 +19,41 @@ public class EmitirVisitaServlet extends HttpServlet {
     String nombre  = req.getParameter("nombre");
     String email   = req.getParameter("email");
     String motivo  = req.getParameter("motivo");
-    String destino = req.getParameter("destino"); // "LOTE-NUMERO" viene oculto del form
-    int usosMax = 2; // entrada y salida
+    String destino = req.getParameter("destino"); // p.ej. "M-5"
+    int ttlMin = 30; // ajusta tu regla
+
+    // id del guardia en sesión (si lo tienes como "uid" o "userId")
+    HttpSession s = req.getSession(false);
+    Integer guardId = null;
+    if (s != null) {
+      Object uid = s.getAttribute("uid");
+      if (uid instanceof Integer) guardId = (Integer) uid;
+      if (guardId == null) {
+        Object userId = s.getAttribute("userId");
+        if (userId instanceof Integer) guardId = (Integer) userId;
+      }
+    }
 
     try {
-      // 1) Token de visita (2 usos)
-      String token = emision.emitir(nombre, email, motivo, destino, usosMax);
+      // 1) Crear pase (obliga a que exista residente de la casa)
+      String token = emision.emitir(nombre, email, motivo, destino, ttlMin, guardId);
 
-      // 2) URL absoluta p/validar
+      // 2) URL absoluta para validar
       String base = req.getScheme() + "://" + req.getServerName()
           + ((req.getServerPort()==80 || req.getServerPort()==443) ? "" : ":" + req.getServerPort())
           + req.getContextPath();
       String url = base + "/api/validate?token=" + token;
 
-      // 3) QR y correo
+      // 3) Enviar QR por correo (opcional)
       if (email != null && !email.trim().isEmpty()) {
         byte[] png = QRUtil.makeQRPng(url, 300);
-        String body = "<p>¡Hola " + (nombre==null? "visitante" : nombre) + "!</p>"
-            + "<p>Se ha generado exitosamente tu <b>código QR de acceso</b> al residencial.</p>"
-            + "<p><b>Validez del código QR:</b> 2 usos (entrada y salida)</p>"
-            + "<p><b>Instrucciones importantes:</b><br>"
-            + "Guarda este correo o el QR adjunto.<br>"
-            + "Preséntalo al llegar al residencial para que el personal de seguridad lo valide.</p>";
-        mail.sendWithInlinePng(email, "Notificación de accesos creados", body, png);
+        String body = "<p>¡Hola " + (nombre == null || nombre.isEmpty() ? "visitante" : nombre) + "!</p>"
+            + "<p>Se generó tu <b>código QR</b> de acceso.</p>"
+            + "<p>Vigencia: " + ttlMin + " minutos.</p>";
+        mail.sendWithInlinePng(email, "QR de acceso", body, png);
       }
 
-      // 4) Volver al formulario con botones de escaneo
+      // 4) Volver al formulario con feedback
       req.setAttribute("ok", true);
       req.setAttribute("token", token);
       req.setAttribute("nombreMostrado", (nombre == null || nombre.isEmpty()) ? "Visitante" : nombre);

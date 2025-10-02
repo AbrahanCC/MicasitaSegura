@@ -11,7 +11,7 @@ public class DBConnection {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/micasita_test", "root", ""
+                "jdbc:mysql://localhost:3308/micasita", "root", ""
             );
             System.out.println("Conexión exitosa a la BD");
         } catch (Exception e) {
@@ -29,7 +29,7 @@ public class DBConnection {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             return DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/micasita_test", "root", ""
+                "jdbc:mysql://localhost:3308/micasita", "root", ""
             );
         } catch (Exception e) {
             throw new RuntimeException("Error en la conexión: " + e);

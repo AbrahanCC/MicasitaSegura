@@ -14,7 +14,6 @@ import java.io.IOException;
 public class LoginServlet extends HttpServlet {
     private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
 
-    // Primer valor no vacío (null-safe)
     private static String firstNonEmpty(String... vals) {
         if (vals == null) return null;
         for (String v : vals) {
@@ -26,7 +25,6 @@ public class LoginServlet extends HttpServlet {
         return null;
     }
 
-    // Si ya está logueado, envía al "home" según rol
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession s = req.getSession(false);
@@ -35,9 +33,9 @@ public class LoginServlet extends HttpServlet {
             String ctx = req.getContextPath();
             if (rol != null) {
                 switch (rol) {
-                    case 1: resp.sendRedirect(ctx + "/view/admin/dashboard.jsp");  return; // Admin
-                    case 2: resp.sendRedirect(ctx + "/view/residente/qr.jsp");     return; // Residente
-                    case 3: resp.sendRedirect(ctx + "/visitantes?op=new");          return; // Guardia -> Registrar visitante
+                    case 1: resp.sendRedirect(ctx + "/view/admin/dashboard.jsp");  return;
+                    case 2: resp.sendRedirect(ctx + "/view/residente/qr.jsp");     return;
+                    case 3: resp.sendRedirect(ctx + "/visitantes?op=new");          return;
                 }
             }
             resp.sendRedirect(ctx + "/index.jsp");
@@ -46,7 +44,6 @@ public class LoginServlet extends HttpServlet {
         req.getRequestDispatcher("/view/login.jsp").forward(req, resp);
     }
 
-    // Autenticación: usuario/correo + contraseña
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String ident = firstNonEmpty(
@@ -55,13 +52,35 @@ public class LoginServlet extends HttpServlet {
         );
         String password = firstNonEmpty(
                 req.getParameter("pass"), req.getParameter("password"),
-                req.getParameter("clave")
+                req.getParameter("clave"), req.getParameter("contrasena")
         );
 
-        Usuario u = (ident == null) ? null : usuarioDAO.buscarPorIdentificador(ident);
+        // --- DEBUG: qué llega del form ---
+        System.out.println("DEBUG LOGIN ----");
+        System.out.println("ident=" + ident);
+        System.out.println("password=" + password);
 
-        boolean ok = (u != null && u.isActivo() && u.getPassHash() != null &&
-                      PasswordUtil.verify(password, u.getPassHash()));
+        Usuario u = (ident == null) ? null : usuarioDAO.buscarPorIdentificador(ident);
+        System.out.println("u!=null=" + (u != null));
+        if (u != null) {
+            System.out.println("user=" + u.getUsername() + " activo=" + u.isActivo());
+            System.out.println("hash=" + u.getPassHash());
+            System.out.println("verify(input)=" + PasswordUtil.verify(password, u.getPassHash()));
+            // Prueba dura: comprobar hash contra "123" directamente
+            System.out.println("verify('123')=" + PasswordUtil.verify("123", u.getPassHash()));
+        }
+        System.out.println("---------------");
+
+        // ----- MODO PRUEBA (TEMPORAL) -----
+        // Para aislar el problema del autocompletado: si el usuario es "admin",
+        // ignora lo que llegó y valida directamente contra "123".
+        boolean ok;
+        if (u != null && "admin".equalsIgnoreCase(ident)) {
+            ok = (u.isActivo() && u.getPassHash() != null && PasswordUtil.verify("123", u.getPassHash()));
+        } else {
+            ok = (u != null && u.isActivo() && u.getPassHash() != null && PasswordUtil.verify(password, u.getPassHash()));
+        }
+        // ----- FIN MODO PRUEBA -----
 
         if (!ok) {
             req.setAttribute("error", "Credenciales inválidas o usuario inactivo.");
@@ -70,25 +89,23 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // Rehash transparente si detecta SHA-256 plano (ejemplo)
+        // Rehash si viniera SHA-256 (raro ya)
         if (u.getPassHash().matches("^[0-9a-fA-F]{64}$")) {
             String newHash = PasswordUtil.hash(password);
             usuarioDAO.actualizarPassword(u.getId(), newHash);
             u.setPassHash(newHash);
         }
 
-        // Sesión mínima
         HttpSession s = req.getSession(true);
         s.setAttribute("uid", u.getId());
         s.setAttribute("uname", u.getNombre());
-        s.setAttribute("rol", u.getRolId()); // 1=ADMIN, 2=RESIDENTE, 3=GUARDIA
+        s.setAttribute("rol", u.getRolId());
 
-        // Redirección por rol
         String ctx = req.getContextPath();
         switch (u.getRolId()) {
             case 1: resp.sendRedirect(ctx + "/view/admin/dashboard.jsp");  return;
             case 2: resp.sendRedirect(ctx + "/view/residente/qr.jsp");     return;
-            case 3: resp.sendRedirect(ctx + "/visitantes?op=new");          return; // Guardia -> Registrar visitante
+            case 3: resp.sendRedirect(ctx + "/visitantes?op=new");          return;
             default: resp.sendRedirect(ctx + "/index.jsp");                return;
         }
     }

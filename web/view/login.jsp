@@ -1,12 +1,18 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
-  String ctx   = request.getContextPath();
+  String ctx = request.getContextPath();
+
+  // Mensaje de error (desde el servlet o por ?err=1)
   String error = (String) request.getAttribute("error");
   if (error == null) {
     String e = request.getParameter("err");
     if ("1".equals(e)) error = "Usuario o contraseña incorrectos.";
   }
-  String lastUser = request.getParameter("user") != null ? request.getParameter("user") : "";
+
+  // Prellenado del campo usuario: 1) atributo 'correo' del servlet, 2) parámetro 'user'
+  String lastUser = (String) request.getAttribute("correo");
+  if (lastUser == null) lastUser = request.getParameter("user");
+  if (lastUser == null) lastUser = "";
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -31,18 +37,32 @@
 
     <% if (error != null) { %>
       <div class="alert alert-danger d-flex align-items-center" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i><div><%=error%></div>
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div><%= error %></div>
       </div>
     <% } %>
 
-    <form method="post" action="<%=ctx%>/login">
+    <!-- Importante: autocomplete="off" en el form y en el password -->
+    <form method="post" action="<%=ctx%>/login" autocomplete="off" spellcheck="false">
       <div class="mb-3">
         <label class="form-label">Usuario o correo</label>
-        <input class="form-control" name="user" autocomplete="username" value="<%=lastUser%>" required>
+        <input class="form-control"
+               name="user"
+               autocomplete="username"
+               autocapitalize="off"
+               value="<%= lastUser %>"
+               required
+               autofocus>
       </div>
       <div class="mb-4">
         <label class="form-label">Contraseña</label>
-        <input class="form-control" type="password" name="pass" autocomplete="current-password" required>
+        <input class="form-control"
+               type="password"
+               name="pass"
+               autocomplete="off"
+               autocapitalize="off"
+               spellcheck="false"
+               required>
       </div>
       <div class="d-grid">
         <button class="btn btn-brand" type="submit">

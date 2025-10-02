@@ -13,31 +13,53 @@
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-        <%-- Admin: Directorio + lista visitantes + registrar + escanear --%>
+        <%-- Admin --%>
         <% if (_mrol != null && _mrol == 1) { %>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">Directorio</a>
           </li>
-          <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/visitantes">Visitantes</a></li>
-          <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/visitantes?op=new">Registrar visitante</a></li>
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/visitantes">Visitantes</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/visitantes?op=new">
+              <i class="bi bi-person-plus me-1"></i>Registrar visitante
+            </a>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/view/guardia/scan.jsp">
               <i class="bi bi-qr-code-scan me-1"></i>Escanear QR
             </a>
           </li>
+          <!-- NUEVO: Enviar avisos (admin también puede) -->
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/guardia/avisos">
+              <i class="bi bi-megaphone me-1"></i>Enviar avisos
+            </a>
+          </li>
         <% } %>
 
-        <%-- Guardia: registrar + escanear --%>
+        <%-- Guardia --%>
         <% if (_mrol != null && _mrol == 3) { %>
-          <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/visitantes?op=new">Registrar visitante</a></li>
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/visitantes?op=new">
+              <i class="bi bi-person-plus me-1"></i>Registrar visitante
+            </a>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/view/guardia/scan.jsp">
               <i class="bi bi-qr-code-scan me-1"></i>Escanear QR
             </a>
           </li>
+          <!-- NUEVO: Enviar avisos (guardia) -->
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/guardia/avisos">
+              <i class="bi bi-megaphone me-1"></i>Enviar avisos
+            </a>
+          </li>
         <% } %>
 
-        <%-- Residente: Mi QR + Directorio + Registrar visitante + Escanear --%>
+        <%-- Residente --%>
         <% if (_mrol != null && _mrol == 2) { %>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/view/residente/qr.jsp">
@@ -54,7 +76,6 @@
               <i class="bi bi-person-plus me-1"></i>Registrar visitante
             </a>
           </li>
-         
         <% } %>
       </ul>
 

@@ -67,40 +67,36 @@ public class UsuarioController extends HttpServlet {
                 req.getRequestDispatcher("/view/usuario-lista.jsp").forward(req, resp);
         }
     }
-    
-    //Opcion guardar usuario cuando esten llenos los campos 
+
+    // Guardar usuario (crear/actualizar)
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
 
         // Params
         String idStr      = req.getParameter("id");
-        String dpi        = req.getParameter("dpi");
-        String nombre     = req.getParameter("nombre");
-        String apellidos  = req.getParameter("apellidos");
-        String correo     = req.getParameter("correo");
-        String numeroCasa = req.getParameter("numeroCasa");
-        String lote       = req.getParameter("lote");
-        String username   = req.getParameter("username");
-        String rolId      = req.getParameter("rolId");
+        String dpi        = trim(req.getParameter("dpi"));
+        String nombre     = trim(req.getParameter("nombre"));
+        String apellidos  = trim(req.getParameter("apellidos"));
+        String correo     = trim(req.getParameter("correo"));
+        // ACEPTA AMBOS NOMBRES: numeroCasa o casa
+        String numeroCasa = firstNonEmpty(trim(req.getParameter("numeroCasa")), trim(req.getParameter("casa")));
+        String lote       = trim(req.getParameter("lote"));
+        String username   = trim(req.getParameter("username"));
+        String rolId      = trim(req.getParameter("rolId"));
         String activo     = req.getParameter("activo");
         String pass       = req.getParameter("pass");
-
-        // Trim básicos
-        if (dpi != null) dpi = dpi.trim();
-        if (correo != null) correo = correo.trim();
-        if (username != null) username = username.trim();
 
         int rolInt = Validador.noVacio(rolId) ? Integer.parseInt(rolId) : 0;
         boolean esGuardia = (rolInt == 3); // 1=ADMIN, 2=RESIDENTE, 3=GUARDIA
 
-        // RN1: si es GUARDIA, forzar NULL en lote/numeroCasa
+        // RN1: si es GUARDIA, lote/numeroCasa no aplican
         if (esGuardia) {
             numeroCasa = null;
             lote = null;
         }
 
-        // RN2: requeridos mínimos + (lote/numeroCasa) SOLO si no es GUARDIA
+        // RN2: requeridos mínimos (si NO es guardia, exige lote + número de casa)
         boolean requeridosOk =
                 Validador.noVacio(dpi) &&
                 Validador.noVacio(nombre) &&
@@ -114,6 +110,7 @@ public class UsuarioController extends HttpServlet {
             req.setAttribute("error", esGuardia
                     ? "Campos requeridos: DPI, Nombre, Apellidos, Correo, Usuario y Rol."
                     : "Campos requeridos: DPI, Nombre, Apellidos, Correo, Usuario, Rol, Lote y Número de casa.");
+
             Usuario tmp = new Usuario();
             if (Validador.noVacio(idStr)) tmp.setId(Integer.parseInt(idStr));
             tmp.setDpi(dpi);
@@ -125,6 +122,7 @@ public class UsuarioController extends HttpServlet {
             tmp.setUsername(username);
             tmp.setRolId(rolInt);
             tmp.setActivo("on".equalsIgnoreCase(activo) || "1".equals(activo));
+
             req.setAttribute("u", tmp);
             req.setAttribute("roles", rolDAO.listar());
             req.setAttribute("casas", catalogoCasas());
@@ -133,15 +131,15 @@ public class UsuarioController extends HttpServlet {
             return;
         }
 
-        // Construcción
+        // Construcción modelo
         Usuario u = new Usuario();
         if (Validador.noVacio(idStr)) u.setId(Integer.parseInt(idStr));
         u.setDpi(dpi);
         u.setNombre(nombre);
         u.setApellidos(apellidos);
         u.setCorreo(correo);
-        u.setNumeroCasa(numeroCasa); // puede ir null (GUARDIA)
-        u.setLote(lote);             // puede ir null (GUARDIA)
+        u.setNumeroCasa(numeroCasa); // puede ser null (GUARDIA)
+        u.setLote(lote);             // puede ser null (GUARDIA)
         u.setUsername(username);
         u.setRolId(rolInt);
         u.setActivo("on".equalsIgnoreCase(activo) || "1".equals(activo));
@@ -154,7 +152,7 @@ public class UsuarioController extends HttpServlet {
                     u.setPassHash(null);
                 }
                 usuarioDAO.actualizar(u);
-            } else { // crear campos de casa y loes completos 
+            } else { // crear
                 if (!Validador.noVacio(pass)) {
                     req.setAttribute("error", "La contraseña es obligatoria para crear un usuario.");
                     req.setAttribute("u", u);
@@ -165,7 +163,7 @@ public class UsuarioController extends HttpServlet {
                     return;
                 }
                 u.setPassHash(PasswordUtil.hash(pass));
-                usuarioDAO.crear(u); // RN3 se aplica dentro del DAO (solo RESIDENTE)
+                usuarioDAO.crear(u);
             }
             resp.sendRedirect(req.getContextPath() + "/usuarios");
 
@@ -184,7 +182,13 @@ public class UsuarioController extends HttpServlet {
         }
     }
 
-    // Duplicados3
+    private static String trim(String s){ return s==null?null:s.trim(); }
+    private static String firstNonEmpty(String... vs){
+        if (vs!=null) for (String v:vs){ if (v!=null && !v.isEmpty()) return v; }
+        return null;
+    }
+
+    // Duplicados
     private String mensajeDuplicado(Throwable ex) {
         Throwable t = ex;
         while (t != null) {
@@ -200,7 +204,6 @@ public class UsuarioController extends HttpServlet {
         }
         return null;
     }
-
     private String mapearDuplicado(String msg) {
         String s = msg.toLowerCase();
         if (s.contains("correo")   || s.contains("uq_usuarios_correo"))    return "El correo ya está registrado.";
