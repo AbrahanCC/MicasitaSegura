@@ -12,6 +12,7 @@ import java.util.List;
 public class DirectorioController extends HttpServlet {
     private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
 //limpiar formulario
+    //comentario de prueba
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String op = req.getParameter("op");
