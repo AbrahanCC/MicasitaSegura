@@ -20,7 +20,6 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         u.setNombre(rs.getString("nombre"));
         u.setApellidos(rs.getString("apellidos"));
         u.setCorreo(rs.getString("correo"));
-        // En tu BD la columna es "casa". Si fuese "numero_casa", cámbialo aquí.
         u.setNumeroCasa(rs.getString("casa"));
         try { u.setLote(rs.getString("lote")); } catch (SQLException ignore) { u.setLote(null); }
         u.setUsername(rs.getString("username"));

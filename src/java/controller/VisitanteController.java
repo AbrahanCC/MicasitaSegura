@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.List;
 
 /** Controlador de vistas para Visitantes (solo GET). */
-@WebServlet("/visitantes") // visitantes -> lista / form / scan
+@WebServlet("/visitantes")
 public class VisitanteController extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
@@ -21,19 +21,16 @@ public class VisitanteController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        req.setCharacterEncoding("UTF-8"); //evita problemas con acentos
+        req.setCharacterEncoding("UTF-8");
 
-        // op: new | scan | list (default)
-        String op = val(req.getParameter("op"), "list").toLowerCase(); //normaliza
+        String op = val(req.getParameter("op"), "list").toLowerCase();
 
         switch (op) {
             case "new":
-                // Formulario: POST lo maneja /api/emit (EmitirVisitaServlet)
                 req.getRequestDispatcher("/view/guardia/visitante-form.jsp").forward(req, resp);
                 return;
 
             case "scan":
-                // Lector QR en navegador (scan.jsp valida via /api/validate)
                 req.getRequestDispatcher("/view/guardia/scan.jsp").forward(req, resp);
                 return;
 
@@ -43,21 +40,18 @@ public class VisitanteController extends HttpServlet {
                 String destino = nz(req.getParameter("destinoNumeroCasa"));
                 String dpi     = nz(req.getParameter("dpi"));
 
-                List<Visitante> data = visitanteDAO.listar(desde, hasta, destino, dpi); //El DAO 
+                List<Visitante> data = visitanteDAO.listar(desde, hasta, destino, dpi);
                 req.setAttribute("data", data);
                 req.getRequestDispatcher("/view/guardia/visitante-lista.jsp").forward(req, resp);
         }
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-        
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
                 "Usa POST " + req.getContextPath() + "/api/emit para emitir el pase de visita.");
     }
 
-    /* Helpers */
-    private static String nz(String s) { return s == null ? "" : s.trim(); } //Evita null
+    private static String nz(String s) { return s == null ? "" : s.trim(); }
     private static String val(String v, String def) { return (v == null || v.isEmpty()) ? def : v; }
 }

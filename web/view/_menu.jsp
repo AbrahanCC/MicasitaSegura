@@ -16,6 +16,7 @@
         <%-- Admin --%>
         <% if (_mrol != null && _mrol == 1) { %>
           <li class="nav-item">
+            <!-- aquí está el arreglo del 404 de /directorio: apuntamos al servlet /directorio -->
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">Directorio</a>
           </li>
           <li class="nav-item">
@@ -31,12 +32,17 @@
               <i class="bi bi-qr-code-scan me-1"></i>Escanear QR
             </a>
           </li>
-          <!-- NUEVO: Enviar avisos (admin también puede) -->
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/guardia/avisos">
               <i class="bi bi-megaphone me-1"></i>Enviar avisos
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/comunicacion">
+                <i class="bi bi-chat-dots me-1"></i>Comunicación Interna
+            </a>
+          </li>
+
         <% } %>
 
         <%-- Guardia --%>
@@ -51,7 +57,6 @@
               <i class="bi bi-qr-code-scan me-1"></i>Escanear QR
             </a>
           </li>
-          <!-- NUEVO: Enviar avisos (guardia) -->
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/guardia/avisos">
               <i class="bi bi-megaphone me-1"></i>Enviar avisos

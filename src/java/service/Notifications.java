@@ -12,7 +12,7 @@ public class Notifications {
         final String sql = "INSERT INTO notif_outbox " +
                 "(recipient, subject, body_html, correlation_id) VALUES (?,?,?,?)";
 
-        try (Connection cn = new DBConnection().getConnection();
+        try (Connection cn = DBConnection.getConnectionStatic();
              PreparedStatement ps = cn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, to);

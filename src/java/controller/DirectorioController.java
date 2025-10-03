@@ -4,37 +4,42 @@ import dao.UsuarioDAO;
 import dao.UsuarioDAOImpl;
 import model.Usuario;
 
-import javax.servlet.*;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
 
+@WebServlet("/directorio")
 public class DirectorioController extends HttpServlet {
+
     private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
-//limpiar formulario
-    
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
         String op = req.getParameter("op");
         if ("limpiar".equalsIgnoreCase(op)) {
             req.setAttribute("msg", "Formulario limpio.");
+            // Si tu JSP está en otra carpeta, cambia esta ruta.
             req.getRequestDispatcher("/view/residente/directorio.jsp").forward(req, resp);
             return;
         }
 
-        String nombres = p(req, "nombres");
-        String apellidos = p(req, "apellidos");
-        String lote = p(req, "lote");
+        String nombres    = p(req, "nombres");
+        String apellidos  = p(req, "apellidos");
+        String lote       = p(req, "lote");
         String numeroCasa = p(req, "numeroCasa");
 
         boolean loteVacio = lote.isEmpty();
-        boolean numVacio = numeroCasa.isEmpty();
+        boolean numVacio  = numeroCasa.isEmpty();
+
         if (loteVacio ^ numVacio) {
             req.setAttribute("error", "Debe seleccionar un lote y un número de casa o ninguno de los dos.");
             req.getRequestDispatcher("/view/residente/directorio.jsp").forward(req, resp);
             return;
         }
-//buscar por nombre etc
+
         boolean hayFiltros = !nombres.isEmpty() || !apellidos.isEmpty() || (!loteVacio && !numVacio);
         if (hayFiltros) {
             List<Usuario> lista = usuarioDAO.buscarDirectorio(nombres, apellidos, lote, numeroCasa);

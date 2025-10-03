@@ -55,32 +55,23 @@ public class LoginServlet extends HttpServlet {
                 req.getParameter("clave"), req.getParameter("contrasena")
         );
 
-        // --- DEBUG: qué llega del form ---
+        // DEBUG opcional (no imprimir password en producción)
         System.out.println("DEBUG LOGIN ----");
         System.out.println("ident=" + ident);
-        System.out.println("password=" + password);
 
         Usuario u = (ident == null) ? null : usuarioDAO.buscarPorIdentificador(ident);
         System.out.println("u!=null=" + (u != null));
         if (u != null) {
             System.out.println("user=" + u.getUsername() + " activo=" + u.isActivo());
             System.out.println("hash=" + u.getPassHash());
-            System.out.println("verify(input)=" + PasswordUtil.verify(password, u.getPassHash()));
-            // Prueba dura: comprobar hash contra "123" directamente
-            System.out.println("verify('123')=" + PasswordUtil.verify("123", u.getPassHash()));
         }
         System.out.println("---------------");
 
-        // ----- MODO PRUEBA (TEMPORAL) -----
-        // Para aislar el problema del autocompletado: si el usuario es "admin",
-        // ignora lo que llegó y valida directamente contra "123".
-        boolean ok;
-        if (u != null && "admin".equalsIgnoreCase(ident)) {
-            ok = (u.isActivo() && u.getPassHash() != null && PasswordUtil.verify("123", u.getPassHash()));
-        } else {
-            ok = (u != null && u.isActivo() && u.getPassHash() != null && PasswordUtil.verify(password, u.getPassHash()));
-        }
-        // ----- FIN MODO PRUEBA -----
+        // *** aquí está el arreglo del login ***
+        // Se elimina el "modo prueba" que comparaba SIEMPRE contra "123" para el usuario admin,
+        // lo cual hacía fallar la validación cuando la contraseña real era "admin#123".
+        boolean ok = (u != null && u.isActivo() && u.getPassHash() != null
+                && PasswordUtil.verify(password, u.getPassHash()));
 
         if (!ok) {
             req.setAttribute("error", "Credenciales inválidas o usuario inactivo.");
@@ -89,7 +80,7 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // Rehash si viniera SHA-256 (raro ya)
+        // Rehash si viniera SHA-256 (legacy)
         if (u.getPassHash().matches("^[0-9a-fA-F]{64}$")) {
             String newHash = PasswordUtil.hash(password);
             usuarioDAO.actualizarPassword(u.getId(), newHash);

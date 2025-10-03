@@ -12,7 +12,7 @@ public class RolDAOImpl implements RolDAO {
     public List<Rol> listar() {
         List<Rol> out = new ArrayList<>();
         String sql = "SELECT id, nombre FROM roles ORDER BY nombre";
-        try (Connection cn = new DBConnection().getConnection();
+        try (Connection cn = DBConnection.getConnectionStatic();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

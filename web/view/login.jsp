@@ -42,7 +42,7 @@
       </div>
     <% } %>
 
-    <!-- Importante: autocomplete="off" en el form y en el password -->
+    <!-- Envío POR POST  -->
     <form method="post" action="<%=ctx%>/login" autocomplete="off" spellcheck="false">
       <div class="mb-3">
         <label class="form-label">Usuario o correo</label>
