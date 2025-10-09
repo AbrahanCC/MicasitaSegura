@@ -16,8 +16,10 @@
         <%-- Admin --%>
         <% if (_mrol != null && _mrol == 1) { %>
           <li class="nav-item">
-            <!-- aquí está el arreglo del 404 de /directorio: apuntamos al servlet /directorio -->
-            <a class="nav-link" href="${pageContext.request.contextPath}/directorio">Directorio</a>
+            <!-- Acceso a opción "Directorio Residencial" -->
+            <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
+              <i class="bi bi-people me-1"></i>Directorio
+            </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/visitantes">Visitantes</a>
@@ -39,14 +41,19 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/comunicacion">
-                <i class="bi bi-chat-dots me-1"></i>Comunicación Interna
+              <i class="bi bi-chat-dots me-1"></i>Comunicación Interna
             </a>
           </li>
-
         <% } %>
 
         <%-- Guardia --%>
         <% if (_mrol != null && _mrol == 3) { %>
+          <li class="nav-item">
+            <!-- Acceso a opción "Directorio Residencial" (para Guardia) -->
+            <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
+              <i class="bi bi-people me-1"></i>Directorio
+            </a>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/visitantes?op=new">
               <i class="bi bi-person-plus me-1"></i>Registrar visitante
@@ -72,6 +79,7 @@
             </a>
           </li>
           <li class="nav-item">
+            <!-- CU21-3.3.1: Acceso a opción "Directorio Residencial" (para Residente) -->
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
               <i class="bi bi-people me-1"></i>Directorio
             </a>

@@ -1,4 +1,3 @@
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.*,model.Usuario"%>
 <%
@@ -11,6 +10,10 @@ String qNombres    = request.getParameter("nombres")     != null ? request.getPa
 String qApellidos  = request.getParameter("apellidos")   != null ? request.getParameter("apellidos")   : "";
 String qLote       = request.getParameter("lote")        != null ? request.getParameter("lote")        : "";
 String qNumeroCasa = request.getParameter("numeroCasa")  != null ? request.getParameter("numeroCasa")  : "";
+
+// Catálogos enviados por el Controller
+List<String> lotesList = (List<String>) request.getAttribute("lotes");
+List<String> casasList = (List<String>) request.getAttribute("casas");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -36,6 +39,7 @@ String qNumeroCasa = request.getParameter("numeroCasa")  != null ? request.getPa
       </div>
     </div>
 
+    <!-- Muestra mensajes de error o información -->
     <% if (error != null) { %>
       <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i><%=error%></div>
     <% } %>
@@ -43,43 +47,67 @@ String qNumeroCasa = request.getParameter("numeroCasa")  != null ? request.getPa
       <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i><%=msg%></div>
     <% } %>
 
+    <!-- Campos opcionales de búsqueda -->
+    <!-- Botones Buscar y Limpiar -->
     <form class="row g-3 mb-4" method="get" action="<%=ctx%>/directorio">
       <div class="col-md-6">
-        <label class="form-label">Nombres</label>
-        <input class="form-control" type="text" name="nombres" value="<%=qNombres%>">
+        <label class="form-label">Nombres del residente</label>
+        <!-- Restricción: solo letras y espacios -->
+        <input class="form-control" type="text" name="nombres" 
+               value="<%=qNombres%>" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" 
+               title="Solo se permiten letras y espacios">
       </div>
       <div class="col-md-6">
-        <label class="form-label">Apellidos</label>
-        <input class="form-control" type="text" name="apellidos" value="<%=qApellidos%>">
+        <label class="form-label">Apellidos del residente</label>
+        <!-- Restricción: solo letras y espacios -->
+        <input class="form-control" type="text" name="apellidos" 
+               value="<%=qApellidos%>" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]+" 
+               title="Solo se permiten letras y espacios">
       </div>
+
       <div class="col-md-3">
         <label class="form-label">Lote</label>
         <select class="form-select" name="lote">
           <option value="">(Sin lote)</option>
-          <%
-            String[] lotes = "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z".split(",");
-            for (String l : lotes) {
-              String sel = l.equalsIgnoreCase(qLote) ? "selected" : "";
+          <% if (lotesList != null) {
+               for (String l : lotesList) {
+                 String sel = l.equalsIgnoreCase(qLote) ? "selected" : "";
           %>
             <option value="<%=l%>" <%=sel%>><%=l%></option>
-          <% } %>
+          <%   }
+             } %>
         </select>
       </div>
+
       <div class="col-md-3">
-        <label class="form-label">Número</label>
-        <input class="form-control" type="number" name="numeroCasa" min="1" max="999" value="<%=qNumeroCasa%>">
+        <label class="form-label">Número de casa</label>
+        <select class="form-select" name="numeroCasa">
+          <option value="">(Sin número)</option>
+          <% if (casasList != null) {
+               for (String c : casasList) {
+                 String sel = c.equalsIgnoreCase(qNumeroCasa) ? "selected" : "";
+          %>
+            <option value="<%=c%>" <%=sel%>><%=c%></option>
+          <%   }
+             } %>
+        </select>
       </div>
+
       <div class="col-12 d-flex gap-2">
         <button class="btn btn-brand" type="submit"><i class="bi bi-search me-1"></i>Buscar</button>
-        <a class="btn btn-outline-secondary" href="<%=ctx%>/directorio?op=limpiar"><i class="bi bi-eraser me-1"></i>Limpiar</a>
+        <!-- Botón Limpiar formulario -->
+        <a class="btn btn-outline-secondary" href="<%=ctx%>/directorio?op=limpiar">
+          <i class="bi bi-eraser me-1"></i>Limpiar
+        </a>
       </div>
     </form>
 
+    <!-- Resultados del residente consultado -->
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
-            <th>Nombre completo</th>
+            <th>Nombre completo del Usuario</th>
             <th>Número de casa</th>
             <th>Correo electrónico</th>
           </tr>
@@ -87,10 +115,12 @@ String qNumeroCasa = request.getParameter("numeroCasa")  != null ? request.getPa
         <tbody>
         <%
           if (lista == null) {
+            // Esperando acción de búsqueda
         %>
           <tr><td colspan="3" class="text-muted">Use los filtros y presione “Buscar”.</td></tr>
         <%
           } else if (lista.isEmpty()) {
+            // No se encontró información
         %>
           <tr><td colspan="3">Sin resultados.</td></tr>
         <%
@@ -99,7 +129,11 @@ String qNumeroCasa = request.getParameter("numeroCasa")  != null ? request.getPa
         %>
           <tr>
             <td><%= u.getApellidos() + ", " + u.getNombre() %></td>
-            <td><span class="badge text-bg-secondary"><%= u.getNumeroCasa() == null ? "" : u.getNumeroCasa() %></span></td>
+            <td>
+              <span class="badge text-bg-secondary">
+                <%= (u.getLote() != null ? u.getLote() + "-" : "") %><%= (u.getNumeroCasa() != null ? u.getNumeroCasa() : "") %>
+              </span>
+            </td>
             <td><%= u.getCorreo() %></td>
           </tr>
         <%

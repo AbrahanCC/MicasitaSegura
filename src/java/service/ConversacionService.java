@@ -18,7 +18,7 @@ public class ConversacionService {
                      "WHERE u.activo=1 AND LOWER(r.nombre) IN ('guardia','agente')";
 
         List<UsuarioMin> list = new ArrayList<>();
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

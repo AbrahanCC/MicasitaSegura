@@ -10,7 +10,7 @@ public class ConversacionDAOImpl implements ConversacionDAO {
     @Override
     public boolean existsActiva(int idResidente, int idGuardia) {
         String sql = "SELECT 1 FROM conversaciones WHERE id_residente=? AND id_guardia=? AND estado='ACTIVA' LIMIT 1";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, idResidente);
             ps.setInt(2, idGuardia);
@@ -21,7 +21,7 @@ public class ConversacionDAOImpl implements ConversacionDAO {
     @Override
     public int countActivasPorGuardia(int idGuardia) {
         String sql = "SELECT COUNT(*) FROM conversaciones WHERE id_guardia=? AND estado='ACTIVA'";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, idGuardia);
             try (ResultSet rs = ps.executeQuery()) { rs.next(); return rs.getInt(1); }
@@ -31,7 +31,7 @@ public class ConversacionDAOImpl implements ConversacionDAO {
     @Override
     public Conversacion create(Conversacion c) {
         String sql = "INSERT INTO conversaciones (id_residente, id_guardia, estado) VALUES (?,?, 'ACTIVA')";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, c.getIdResidente());
             ps.setInt(2, c.getIdGuardia());
@@ -49,7 +49,7 @@ public class ConversacionDAOImpl implements ConversacionDAO {
     @Override
     public Conversacion findById(int id) {
         String sql = "SELECT * FROM conversaciones WHERE id=?";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -70,7 +70,7 @@ public class ConversacionDAOImpl implements ConversacionDAO {
     public List<Conversacion> findActivasByUsuario(int idUsuario) {
         String sql = "SELECT * FROM conversaciones WHERE estado='ACTIVA' AND (id_residente=? OR id_guardia=?) ORDER BY fecha_ultimo_mensaje DESC, fecha_creacion DESC";
         List<Conversacion> list = new ArrayList<>();
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, idUsuario);
             ps.setInt(2, idUsuario);
@@ -93,7 +93,7 @@ public class ConversacionDAOImpl implements ConversacionDAO {
     @Override
     public void updateFechaUltimoMensaje(int idConversacion) {
         String sql = "UPDATE conversaciones SET fecha_ultimo_mensaje=NOW() WHERE id=?";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, idConversacion);
             ps.executeUpdate();
@@ -103,7 +103,7 @@ public class ConversacionDAOImpl implements ConversacionDAO {
     @Override
     public void cerrar(int idConversacion) {
         String sql = "UPDATE conversaciones SET estado='CERRADA' WHERE id=?";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, idConversacion);
             ps.executeUpdate();

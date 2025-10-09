@@ -18,14 +18,17 @@ public class DirectorioController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
+        // Acceso a opción Directorio Residencial
         String op = req.getParameter("op");
+
+        //Limpiar formulario
         if ("limpiar".equalsIgnoreCase(op)) {
             req.setAttribute("msg", "Formulario limpio.");
-            // Si tu JSP está en otra carpeta, cambia esta ruta.
             req.getRequestDispatcher("/view/residente/directorio.jsp").forward(req, resp);
             return;
         }
 
+        //Captura de parámetros opcionales
         String nombres    = p(req, "nombres");
         String apellidos  = p(req, "apellidos");
         String lote       = p(req, "lote");
@@ -34,19 +37,24 @@ public class DirectorioController extends HttpServlet {
         boolean loteVacio = lote.isEmpty();
         boolean numVacio  = numeroCasa.isEmpty();
 
+        //Validación número de casa incompleto
         if (loteVacio ^ numVacio) {
-            req.setAttribute("error", "Debe seleccionar un lote y un número de casa o ninguno de los dos.");
+            req.setAttribute("error", "Por favor, debe seleccionar un lote y un número de casa o ninguno de los dos.");
             req.getRequestDispatcher("/view/residente/directorio.jsp").forward(req, resp);
             return;
         }
 
+        //Usuario presiona “Buscar”
         boolean hayFiltros = !nombres.isEmpty() || !apellidos.isEmpty() || (!loteVacio && !numVacio);
+
+        // Búsqueda en DAO (FA2 posible)
         if (hayFiltros) {
             List<Usuario> lista = usuarioDAO.buscarDirectorio(nombres, apellidos, lote, numeroCasa);
-            if (lista.isEmpty()) req.setAttribute("msg", "No se encontró ningún usuario con los datos ingresados.");
+            if (lista.isEmpty()) req.setAttribute("msg", "No se encontró ningún usuario con los datos ingresados."); // CU21-FA2
             req.setAttribute("lista", lista);
         }
 
+        //Muestra información del residente
         req.getRequestDispatcher("/view/residente/directorio.jsp").forward(req, resp);
     }
 

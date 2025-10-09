@@ -9,7 +9,7 @@ public class IncidenteDAOImpl implements IncidenteDAO {
     @Override
     public Incidente create(Incidente inc) {
         String sql = "INSERT INTO incidentes (id_residente, tipo, fecha_hora, descripcion) VALUES (?,?,?,?)";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, inc.getIdResidente());
             ps.setString(2, inc.getTipo());

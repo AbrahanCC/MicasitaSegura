@@ -40,6 +40,7 @@ public class UsuarioController extends HttpServlet {
         if (op == null) op = "list";
 
         switch (op) {
+            //FA1 formulario de creación con catálogos RN1 y roles RN4
             case "new":
                 req.setAttribute("roles", rolDAO.listar());
                 req.setAttribute("u", new Usuario());
@@ -48,6 +49,7 @@ public class UsuarioController extends HttpServlet {
                 req.getRequestDispatcher("/view/usuario-form.jsp").forward(req, resp);
                 break;
 
+            //FA1 edición muestra formulario con datos existentes
             case "edit":
                 int id = Integer.parseInt(req.getParameter("id"));
                 req.setAttribute("u", usuarioDAO.obtener(id));
@@ -56,13 +58,15 @@ public class UsuarioController extends HttpServlet {
                 req.setAttribute("lotes", catalogoLotes());
                 req.getRequestDispatcher("/view/usuario-form.jsp").forward(req, resp);
                 break;
-
+                
+            //FA2 eliminar y redirigir a listado
             case "del":
                 usuarioDAO.eliminar(Integer.parseInt(req.getParameter("id")));
                 resp.sendRedirect(req.getContextPath() + "/usuarios");
                 break;
 
             default:
+                // Flujo básico: mostrar lista
                 req.setAttribute("data", usuarioDAO.listar());
                 req.getRequestDispatcher("/view/usuario-lista.jsp").forward(req, resp);
         }
@@ -96,7 +100,7 @@ public class UsuarioController extends HttpServlet {
             lote = null;
         }
 
-        // RN2: requeridos mínimos (si NO es guardia, exige lote + número de casa)
+        // RN2: requeridos mínimos si NO es guardia, exige lote + número de casa
         boolean requeridosOk =
                 Validador.noVacio(dpi) &&
                 Validador.noVacio(nombre) &&
@@ -106,11 +110,13 @@ public class UsuarioController extends HttpServlet {
                 rolInt > 0 &&
                 (esGuardia || (Validador.noVacio(numeroCasa) && Validador.noVacio(lote)));
 
+        // FA1 paso 5 si falta algo, retorna al formulario con mensaje.
         if (!requeridosOk) {
             req.setAttribute("error", esGuardia
                     ? "Campos requeridos: DPI, Nombre, Apellidos, Correo, Usuario y Rol."
                     : "Campos requeridos: DPI, Nombre, Apellidos, Correo, Usuario, Rol, Lote y Número de casa.");
 
+            // Reenvía modelo parcial para no perder datos ingresados.
             Usuario tmp = new Usuario();
             if (Validador.noVacio(idStr)) tmp.setId(Integer.parseInt(idStr));
             tmp.setDpi(dpi);
@@ -146,13 +152,18 @@ public class UsuarioController extends HttpServlet {
 
         try {
             if (u.getId() > 0) { // actualizar
-                if (Validador.noVacio(pass)) {
-                    u.setPassHash(PasswordUtil.hash(pass));
+            if (Validador.noVacio(pass)) {
+                u.setPassHash(PasswordUtil.hash(pass));
                 } else {
                     u.setPassHash(null);
                 }
                 usuarioDAO.actualizar(u);
-            } else { // crear
+
+            //Mensaje al actualizar
+            HttpSession session = req.getSession();
+            session.setAttribute("flashOk", "Usuario actualizado correctamente.");
+                } else { // crear
+                // RN2: contraseña obligatoria al crear
                 if (!Validador.noVacio(pass)) {
                     req.setAttribute("error", "La contraseña es obligatoria para crear un usuario.");
                     req.setAttribute("u", u);
@@ -163,11 +174,16 @@ public class UsuarioController extends HttpServlet {
                     return;
                 }
                 u.setPassHash(PasswordUtil.hash(pass));
-                usuarioDAO.crear(u);
+                usuarioDAO.crear(u);//RN3 QR, envio ocurre en DAO tras insertar si es residente
+                        //Mensaje de exito al crear
+                        HttpSession session = req.getSession();
+                        session.setAttribute("flashOk", "Usuario creado correctamente.");
             }
+            //Retorno al flujo basico o la lista
             resp.sendRedirect(req.getContextPath() + "/usuarios");
 
         } catch (Exception ex) {
+            // FA3: manejo de duplicados (DPI/correo/username).
             String dup = mensajeDuplicado(ex);
             if (dup != null) {
                 req.setAttribute("error", dup);
@@ -182,13 +198,14 @@ public class UsuarioController extends HttpServlet {
         }
     }
 
+    //Helpers
     private static String trim(String s){ return s==null?null:s.trim(); }
     private static String firstNonEmpty(String... vs){
         if (vs!=null) for (String v:vs){ if (v!=null && !v.isEmpty()) return v; }
         return null;
     }
 
-    // Duplicados
+    // excepciones SQL de unicidad, mensajes de duplicados FA3
     private String mensajeDuplicado(Throwable ex) {
         Throwable t = ex;
         while (t != null) {
@@ -204,6 +221,8 @@ public class UsuarioController extends HttpServlet {
         }
         return null;
     }
+    
+    //Traduce constraint a texto de FA3 (DPI/correo/username). */
     private String mapearDuplicado(String msg) {
         String s = msg.toLowerCase();
         if (s.contains("correo")   || s.contains("uq_usuarios_correo"))    return "El correo ya está registrado.";

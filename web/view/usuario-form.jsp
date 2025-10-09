@@ -44,12 +44,12 @@
 
       <div class="row g-3">
         <div class="col-sm-6">
-          <label class="form-label">DPI del residente</label>
+          <label class="form-label">DPI del residente<small class="text-muted"> Solo numeros</small></label>
           <input class="form-control" name="dpi" id="dpi" required pattern="[0-9]{4,25}"
+                 oninput="this.value=this.value.replace(/[^0-9]/g,'');"
                  value="<%=edit && u.getDpi()!=null ? u.getDpi() : ""%>">
         </div>
 
-        <%-- RN1: Lote --%>
         <div class="col-sm-3">
           <label class="form-label">Lote</label>
           <select name="lote" id="lote" class="form-select" required>
@@ -60,7 +60,6 @@
           </select>
         </div>
 
-        <%-- RN1: Número de casa --%>
         <div class="col-sm-3">
           <label class="form-label">Número de casa</label>
           <select name="numeroCasa" id="numeroCasa" class="form-select" required>
@@ -72,19 +71,24 @@
         </div>
 
         <div class="col-sm-6">
-          <label class="form-label">Nombre</label>
+          <label class="form-label">Nombre<small class="text-muted"> Solo letras</small></label>
           <input class="form-control" name="nombre" id="nombre" required
+                 oninput="this.value=this.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ\s]/g,'');"
                  value="<%=edit && u.getNombre()!=null ? u.getNombre() : ""%>">
         </div>
+
         <div class="col-sm-6">
-          <label class="form-label">Apellidos</label>
+          <label class="form-label">Apellidos<small class="text-muted"> Solo letras</small></label>
           <input class="form-control" name="apellidos" id="apellidos" required
+                 oninput="this.value=this.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ\s]/g,'');"
                  value="<%=edit && u.getApellidos()!=null ? u.getApellidos() : ""%>">
         </div>
 
         <div class="col-sm-6">
-          <label class="form-label">Correo</label>
+          <label class="form-label">Correo<small class="text-muted"> MiCorreo@gmail.com</small></label>
           <input type="email" class="form-control" name="correo" id="correo" required
+                 pattern="[a-zA-Z0-9._%+-]+@gmail\.com"
+                 title="El correo debe ser una dirección de Gmail (ejemplo@gmail.com)"
                  value="<%=edit && u.getCorreo()!=null ? u.getCorreo() : ""%>">
         </div>
 
@@ -99,12 +103,17 @@
           <input type="password" class="form-control" name="pass" id="pass" <%= edit ? "" : "required" %>>
         </div>
 
-        <%-- RN4: Rol Catalogo de roles --%>
         <div class="col-sm-6">
           <label class="form-label">Rol del usuario</label>
           <select name="rolId" id="rolId" class="form-select" required>
-            <% if (roles!=null) for(Rol r : roles){ %>
-              <option value="<%=r.getId()%>" <%= edit && u.getRolId()==r.getId() ? "selected":"" %>><%=r.getNombre()%></option>
+            <% if (roles!=null) for(Rol r : roles){ 
+                 String nombreRol = r.getNombre();
+                 String mostrar = nombreRol;
+                 if ("ADMIN".equalsIgnoreCase(nombreRol)) mostrar = "Administrador de residencial";
+                 else if ("GUARDIA".equalsIgnoreCase(nombreRol)) mostrar = "Agente de seguridad de residencial";
+                 else if ("RESIDENTE".equalsIgnoreCase(nombreRol)) mostrar = "Residente";
+            %>
+              <option value="<%=r.getId()%>" <%= edit && u.getRolId()==r.getId() ? "selected":"" %>><%=mostrar%></option>
             <% } %>
           </select>
         </div>
@@ -128,7 +137,6 @@
 </div>
 
 <script>
-  // si rol = GUARDIA(3) => deshabilitar Lote y Número y quitar required
   (function () {
     const rol = document.getElementById('rolId');
     const lote = document.getElementById('lote');
@@ -145,7 +153,6 @@
     }
 
     function validate() {
-      // RN2 apoyo cliente (en servidor ya está)
       if (!edit) pass.required = true;
     }
 

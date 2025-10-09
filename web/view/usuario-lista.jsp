@@ -13,6 +13,14 @@
       else if (rol == 2) destinoInicio = ctx + "/view/residente/qr.jsp";
       else if (rol == 3) destinoInicio = ctx + "/view/guardia/scan.jsp";
   }
+
+  // Flash de éxito: creado/actualizado/eliminado
+  String flashOk = null;
+  HttpSession sess = request.getSession(false);
+  if (sess != null) {
+      flashOk = (String) sess.getAttribute("flashOk");
+      if (flashOk != null) sess.removeAttribute("flashOk");
+  }
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -45,6 +53,13 @@
       </div>
     </div>
 
+    <% if (flashOk != null) { %>
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <%= flashOk %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <% } %>
+
     <div class="table-responsive">
       <table class="table table-hover align-middle">
         <thead class="table-light">
@@ -75,20 +90,22 @@
             <td><%= u.getNombre() %></td>
             <td><%= u.getApellidos() %></td>
             <td><%= u.getCorreo() %></td>
-            <td><%= u.getLote()==null?"—":u.getLote() %></td>
-            <td><%= u.getNumeroCasa()==null?"—":u.getNumeroCasa() %></td>
+            <td><%= (u.getLote()==null ? "—" : u.getLote()) %></td>
+            <td><%= (u.getNumeroCasa()==null ? "—" : u.getNumeroCasa()) %></td>
             <td>
               <span class="badge text-bg-secondary">
-                <%= (u.getRolId()==1?"Administrador":(u.getRolId()==2?"Residente":(u.getRolId()==3?"Guardia":"?"))) %>
+                <%= (u.getRolId()==1 ? "Administrador de residencial" 
+                    : (u.getRolId()==2 ? "Residente" 
+                    : (u.getRolId()==3 ? "Agente de seguridad de residencial" : "?"))) %>
               </span>
             </td>
             <td class="text-center">
-              <a href="<%=ctx%>/usuarios?op=edit&id=<%=u.getId()%>" class="btn btn-sm btn-outline-primary me-1">
+              <a href="<%=ctx%>/usuarios?op=edit&id=<%=u.getId()%>" class="btn btn-sm btn-outline-primary me-1" title="Editar">
                 <i class="bi bi-pencil-square"></i>
               </a>
               <a href="<%=ctx%>/usuarios?op=del&id=<%=u.getId()%>"
                  onclick="return confirm('¿Eliminar a <%=u.getNombre()%>?')"
-                 class="btn btn-sm btn-outline-danger">
+                 class="btn btn-sm btn-outline-danger" title="Eliminar">
                 <i class="bi bi-trash"></i>
               </a>
             </td>

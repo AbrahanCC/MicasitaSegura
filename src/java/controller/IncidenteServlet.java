@@ -50,7 +50,7 @@ public class IncidenteServlet extends HttpServlet {
 
     private String getCasa(int idResidente) {
         String sql = "SELECT casa FROM usuarios WHERE id=?";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, idResidente);
             try (ResultSet rs = ps.executeQuery()) {

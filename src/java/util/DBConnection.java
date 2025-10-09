@@ -2,38 +2,31 @@ package util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class DBConnection {
 
-    private Connection con;
+    // Datos de la base de datos
+    private static final String URL  = "jdbc:mysql://localhost:3306/micasita_test";
+    private static final String USER = "root";
+    private static final String PASS = "";
 
-    public DBConnection() {
+    // Cargar el driver solo una vez
+    static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/micasita_test", "root", ""
-            );
-            System.out.println("Conexión exitosa a la BD");
-        } catch (Exception e) {
-            System.err.println("Error en la conexión: " + e);
+            System.out.println("Driver MySQL cargado correctamente.");
+        } catch (ClassNotFoundException e) {
+            System.err.println("Error al cargar el driver MySQL: " + e.getMessage());
         }
     }
 
-    // Método de instancia
-    public Connection getConnection() {
-        return con;
-    }
-
-    // Método estático (más práctico en servlets/services)
-    public static Connection getConnectionStatic() {
+    // Método que devuelve una conexión a la base
+    public static Connection getConnection() {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            return DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/micasita_test", "root", ""
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("Error en la conexión: " + e);
+            return DriverManager.getConnection(URL, USER, PASS);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al conectar con la base de datos: " + e.getMessage(), e);
         }
     }
 }
-

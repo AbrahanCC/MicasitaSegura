@@ -12,7 +12,7 @@ public class AccesoLogDAOImpl implements AccesoLogDAO {
   public void insertar(AccesoLog a) {
     String sql = "INSERT INTO accesos_log(tipo,visitante_id,usuario_id,token,resultado,motivo,origin) "
                + "VALUES(?,?,?,?,?,?,?)";
-    try (Connection c = DBConnection.getConnectionStatic();
+    try (Connection c = DBConnection.getConnection();
          PreparedStatement ps = c.prepareStatement(sql)) {
       ps.setString(1, a.getTipo());
       if (a.getVisitanteId() == null) ps.setNull(2, java.sql.Types.INTEGER); else ps.setInt(2, a.getVisitanteId());
@@ -41,7 +41,7 @@ public class AccesoLogDAOImpl implements AccesoLogDAO {
         "   AND estado = 'emitido' " +
         "   AND COALESCE(used_count,0) < ?";
 
-    try (Connection c = DBConnection.getConnectionStatic();
+    try (Connection c = DBConnection.getConnection();
          PreparedStatement ps = c.prepareStatement(sql)) {
       ps.setInt(1, maxUses);  
       ps.setString(2, token); 

@@ -39,7 +39,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
                 "(nombre, dpi, motivo, destino_numero_casa, email, token, qr_fin, estado) " +
                 "VALUES (?,?,?,?,?,?,?,?)";
 
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
 
             ps.setString(1, v.getNombre());
@@ -107,7 +107,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
 
         sql.append(" ORDER BY COALESCE(creado_en, NOW()) DESC");
 
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
             try (ResultSet rs = ps.executeQuery()) {
@@ -133,7 +133,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
             "       COALESCE(used_count, 0) AS used_count " +
             "FROM visitantes WHERE id=? LIMIT 1";
 
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -166,7 +166,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
             "     OR (visit_type='visita' AND (qr_fin IS NULL OR qr_fin >= NOW())) ) " +
             "LIMIT 1";
 
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, token);
             try (ResultSet rs = ps.executeQuery()) {
@@ -194,7 +194,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
             "       ELSE estado END " +
             "WHERE token=? AND estado IN ('emitido','activo')";
 
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, token);
             int n = ps.executeUpdate();
@@ -210,7 +210,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
     @Override
     public boolean aprobar(int idVisitante, Integer modificadoPor) {
         final String sql = "UPDATE visitantes SET estado='activo', modificado_por=? WHERE id=?";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setObject(1, modificadoPor);
             ps.setInt(2, idVisitante);
@@ -223,7 +223,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
     @Override
     public boolean rechazar(int idVisitante, Integer modificadoPor) {
         final String sql = "UPDATE visitantes SET estado='cancelado', modificado_por=? WHERE id=?";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setObject(1, modificadoPor);
             ps.setInt(2, idVisitante);

@@ -83,7 +83,7 @@ public class NotifWorker implements ServletContextListener {
             new MailService().sendHtml(r.to, r.subject, r.html);
 
             // Marcar SENT
-        try (Connection c2 = DBConnection.getConnectionStatic();
+        try (Connection c2 = DBConnection.getConnection();
                  PreparedStatement ok = c2.prepareStatement(
                          "UPDATE notif_outbox SET status='SENT', sent_at=NOW() WHERE id=?")) {
                 ok.setLong(1, r.id);
@@ -95,7 +95,7 @@ public class NotifWorker implements ServletContextListener {
         } catch (Exception ex) {
             System.err.println("[NotifWorker] FAILED id=" + r.id + " -> " + ex.getMessage());
             // Reintentos: si ya tiene >=5, pasa a FAILED; si no, vuelve a PENDING
-        try (Connection c2 = DBConnection.getConnectionStatic();
+        try (Connection c2 = DBConnection.getConnection();
                  PreparedStatement fail = c2.prepareStatement(
                          "UPDATE notif_outbox " +
                          "SET status = CASE WHEN retry_count>=5 THEN 'FAILED' ELSE 'PENDING' END, " +
@@ -110,7 +110,7 @@ public class NotifWorker implements ServletContextListener {
     }
 
     private void log(long id, String ev, String detail) {
-        try (Connection c = DBConnection.getConnectionStatic();
+        try (Connection c = DBConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(
                      "INSERT INTO notif_log (notif_id, event, detail) VALUES (?,?,?)")) {
             ps.setLong(1, id);

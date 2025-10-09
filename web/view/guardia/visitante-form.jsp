@@ -49,7 +49,12 @@
       <input type="hidden" name="destino" id="destino">
 
       <div class="col-md-6">
-        <label class="form-label">Nombre</label>
+        <label class="form-label">Nombre del visitante</label>
+        <input class="form-control" name="nombre" required>
+      </div>
+      
+      <div class="col-md-6">
+        <label class="form-label">DPI del visitante</label>
         <input class="form-control" name="nombre" required>
       </div>
 
@@ -76,7 +81,7 @@
       </div>
 
       <div class="col-sm-6">
-        <label class="form-label">Email del visitante (opcional)</label>
+        <label class="form-label">Correo visitante</label>
         <input class="form-control" type="email" name="email" placeholder="alguien@correo.com">
         <div class="form-text">Si lo completas, el QR se enviará por correo (imagen inline).</div>
       </div>

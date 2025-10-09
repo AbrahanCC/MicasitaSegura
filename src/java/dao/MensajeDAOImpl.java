@@ -10,7 +10,7 @@ public class MensajeDAOImpl implements MensajeDAO {
     @Override
     public Mensaje create(Mensaje m) {
         String sql = "INSERT INTO mensajes (id_conversacion, id_emisor, contenido) VALUES (?,?,?)";
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, m.getIdConversacion());
             ps.setInt(2, m.getIdEmisor());
@@ -27,7 +27,7 @@ public class MensajeDAOImpl implements MensajeDAO {
     public List<Mensaje> findByConversacion(int idConversacion, int limit, int offset) {
         String sql = "SELECT * FROM mensajes WHERE id_conversacion=? ORDER BY fecha_envio ASC LIMIT ? OFFSET ?";
         List<Mensaje> list = new ArrayList<>();
-        try (Connection cn = DBConnection.getConnectionStatic();
+        try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, idConversacion);
             ps.setInt(2, limit);

@@ -49,7 +49,7 @@ public class EmisionVisitanteService {
 
     String token = UUID.randomUUID().toString();
 
-    try (Connection c = DBConnection.getConnectionStatic()) {
+    try (Connection c = DBConnection.getConnection()) {
       Integer residenteId = findResidenteId(c, destinoNumeroCasa);
       if (residenteId == null) {
         throw new IllegalStateException("No existe residente activo para la casa " + destinoNumeroCasa);

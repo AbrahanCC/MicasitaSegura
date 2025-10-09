@@ -7,10 +7,10 @@ import java.sql.*;
 
 public class AvisoDAOImpl implements AvisoDAO {
 
-    @Override
+@Override
     public int crear(Aviso a) {
         String sql = "INSERT INTO aviso(asunto, mensaje, destinatario_tipo, destinatario_email, creado_por) VALUES (?,?,?,?,?)";
-        try (Connection con = DBConnection.getConnectionStatic();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, a.getAsunto());
@@ -24,14 +24,17 @@ public class AvisoDAOImpl implements AvisoDAO {
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             if (rs.next()) return rs.getInt(1);
-        } catch (Exception e) { e.printStackTrace(); }
-        return 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     @Override
     public void registrarEnvio(int avisoId, String email, String estado, String detalle) {
         String sql = "INSERT INTO aviso_envio(aviso_id, email, estado, detalle) VALUES (?,?,?,?)";
-        try (Connection con = DBConnection.getConnectionStatic();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, avisoId);
