@@ -9,11 +9,15 @@ public interface VisitanteDAO {
     List<Visitante> listar(String desde, String hasta, String destinoNumeroCasa, String dpi);
     Visitante obtener(int id);
 
+    // Obtiene el pase vigente según el token QR
+    Visitante obtenerPaseVigentePorToken(String token);
 
-    Visitante obtenerPaseVigentePorToken(String token); 
-    boolean marcarConsumidoPorToken(String token);      
+    // Marca el pase como consumido según el token
+    boolean marcarConsumidoPorToken(String token);
 
-   
+    // Aprueba el acceso de un visitante
     boolean aprobar(int idVisitante, Integer modificadoPor);
+
+    // Rechaza el acceso de un visitante
     boolean rechazar(int idVisitante, Integer modificadoPor);
 }

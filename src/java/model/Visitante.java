@@ -6,19 +6,24 @@ public class Visitante {
 
     private int id;
     private String nombre;
+    private Integer residenteId;         
     private String dpi;
     private String motivo;
-    private Timestamp fechaHora;
+    private Timestamp fechaHora;         
     private String destinoNumeroCasa;
-    private Integer creadoPorGuardiaId;   
+    private Integer creadoPorGuardiaId;
 
-    // Campos para pases
+    // Pases / CU3
     private String email;
     private String token;
-    private Timestamp expiraEn;
-    private String estado;   
-    private Timestamp creadoEn;
-    private int usedCount;   
+    private Timestamp expiraEn;           // para visitas por fecha (puede ser null)
+    private String estado;                // enum('emitido','activo','consumido','cancelado',...)
+    private Timestamp creadoEn;           // timestamp de creación
+    private int usedCount;                // usos consumidos
+    private String visitType;             // enum('por_intentos','visita')
+    private Integer usosMax;              // máximo permitido
+    private Timestamp firstUseAt;
+    private Timestamp lastUseAt;
 
     public Visitante() {}
 
@@ -47,6 +52,9 @@ public class Visitante {
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
+
+    public Integer getResidenteId() { return residenteId; }      // <-- NUEVO
+    public void setResidenteId(Integer residenteId) { this.residenteId = residenteId; }
 
     public String getDpi() { return dpi; }
     public void setDpi(String dpi) { this.dpi = dpi; }
@@ -81,11 +89,24 @@ public class Visitante {
     public int getUsedCount() { return usedCount; }
     public void setUsedCount(int usedCount) { this.usedCount = usedCount; }
 
+    public String getVisitType() { return visitType; }           // opcional
+    public void setVisitType(String visitType) { this.visitType = visitType; }
+
+    public Integer getUsosMax() { return usosMax; }              // opcional
+    public void setUsosMax(Integer usosMax) { this.usosMax = usosMax; }
+
+    public Timestamp getFirstUseAt() { return firstUseAt; }      // opcional
+    public void setFirstUseAt(Timestamp firstUseAt) { this.firstUseAt = firstUseAt; }
+
+    public Timestamp getLastUseAt() { return lastUseAt; }        // opcional
+    public void setLastUseAt(Timestamp lastUseAt) { this.lastUseAt = lastUseAt; }
+
     @Override
     public String toString() {
         return "Visitante{" +
                 "id=" + id +
                 ", nombre='" + nombre + '\'' +
+                ", residenteId=" + residenteId +
                 ", dpi='" + dpi + '\'' +
                 ", motivo='" + motivo + '\'' +
                 ", fechaHora=" + fechaHora +
@@ -97,6 +118,10 @@ public class Visitante {
                 ", estado='" + estado + '\'' +
                 ", creadoEn=" + creadoEn +
                 ", usedCount=" + usedCount +
+                ", visitType='" + visitType + '\'' +
+                ", usosMax=" + usosMax +
+                ", firstUseAt=" + firstUseAt +
+                ", lastUseAt=" + lastUseAt +
                 '}';
     }
 }

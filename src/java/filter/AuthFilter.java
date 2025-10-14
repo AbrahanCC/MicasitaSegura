@@ -24,7 +24,7 @@ public class AuthFilter implements Filter {
         String ctx = req.getContextPath();
         String uri = req.getRequestURI();
 
-        // Rutas libres (login, logout y recursos estáticos)
+        // Rutas libres
         if (uri.equals(ctx + "/") ||
             uri.endsWith("/view/login.jsp") || uri.endsWith("/login") || uri.endsWith("/logout") ||
             uri.contains("/assets/") || uri.contains("/img/") || uri.contains("/css/") || uri.contains("/js/") ||
@@ -35,7 +35,7 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        // Precondición sesión activa obligatoria
+        // Sesión obligatoria
         HttpSession s = req.getSession(false);
         if (s == null || s.getAttribute("uid") == null) {
             resp.sendRedirect(ctx + "/login");
@@ -44,7 +44,7 @@ public class AuthFilter implements Filter {
 
         Integer rol = (Integer) s.getAttribute("rol"); // 1=ADMIN, 2=RESIDENTE, 3=GUARDIA
 
-        // Precondición: acceso permitido solo a Residente o Guardia
+        // Residente/Directorio
         if (uri.startsWith(ctx + "/view/residente/") || uri.equals(ctx + "/directorio")) {
             if (rol == null || (rol != 2 && rol != 3 && rol != 1)) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN);
@@ -52,15 +52,18 @@ public class AuthFilter implements Filter {
             }
         }
 
-        // Otras rutas protegidas (Admin, Guardia, etc.)
+        // Admin
         if (uri.startsWith(ctx + "/view/admin/")) {
             if (rol == null || rol != 1) { resp.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
+        // Guardia
         } else if (uri.startsWith(ctx + "/view/guardia/")) {
             if (rol == null || (rol != 3 && rol != 1)) { resp.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
+        // Usuarios (admin)
         } else if (uri.startsWith(ctx + "/usuarios/")) {
             if (rol == null || rol != 1) { resp.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
-        } else if (uri.equals(ctx + "/qr")) { 
-            if (rol == null || (rol != 1 && rol != 2)) { resp.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
+        // QR: permitir admin, residente y guardia
+        } else if (uri.equals(ctx + "/qr")) {
+            if (rol == null || (rol != 1 && rol != 2 && rol != 3)) { resp.sendError(HttpServletResponse.SC_FORBIDDEN); return; }
         }
 
         c.doFilter(rq, rs);

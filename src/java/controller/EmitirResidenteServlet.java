@@ -3,9 +3,9 @@ package controller;
 import dao.UsuarioDAO;
 import dao.UsuarioDAOImpl;
 import model.Usuario;
+import service.EmisionResidenteService;
 import service.MailService;
 import util.QRUtil;
-import util.PasswordUtil;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
@@ -17,6 +17,7 @@ import java.io.IOException;
 public class EmitirResidenteServlet extends HttpServlet {
   private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
   private final MailService mail = new MailService();
+  private final EmisionResidenteService emision = new EmisionResidenteService(); // 
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -37,10 +38,8 @@ public class EmitirResidenteServlet extends HttpServlet {
         return;
       }
 
-      // 2) Token permanente (R:<id>:<firma>)
-      String secret = System.getProperty("RESIDENT_SECRET", "residentes2025");
-      String firma = PasswordUtil.sha256(secret + ":" + u.getId());
-      String token = "R:" + u.getId() + ":" + firma.substring(0, 32);
+      // 2) Generar token permanente usando el servicio
+      String token = emision.generarTokenPermanente(u); // 
 
       // 3) URL absoluta p/validar
       String base = req.getScheme() + "://" + req.getServerName()
@@ -50,14 +49,8 @@ public class EmitirResidenteServlet extends HttpServlet {
 
       // 4) QR y correo
       byte[] png = QRUtil.makeQRPng(url, 400);
-      String body = "<p>¡Hola!</p>"
-          + "<p>Se ha generado exitosamente tu <b>código QR de acceso</b> al residencial.</p>"
-          + "<p><b>Nombre del Residente:</b> " + u.getNombre() + " " + u.getApellidos() + "</p>"
-          + "<p><b>Validez del código QR:</b> ILIMITADO</p>"
-          + "<p><b>Instrucciones importantes:</b><br>"
-          + "Guarda este correo o el QR adjunto.<br>"
-          + "Preséntalo al llegar al residencial para que el personal de seguridad lo valide.</p>";
-      mail.sendWithInlinePng(u.getCorreo(), "Notificación de accesos creados", body, png);
+      String nombreCompleto = (u.getNombre() == null ? "" : u.getNombre()) + " " + (u.getApellidos() == null ? "" : u.getApellidos()); // 
+      mail.sendAccesoResidente(u.getCorreo(), nombreCompleto.trim(), png); // 
 
       // 5) Volver al formulario con botones de escaneo
       req.setAttribute("ok", true);

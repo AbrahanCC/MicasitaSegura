@@ -1,8 +1,11 @@
 package controller;
-//controla la talanquera//
+
+// Valida tokens de residente/visita y abre talanquera
 import dao.AccesoLogDAO;
 import dao.AccesoLogDAOImpl;
-import model.AccesoLog;
+import dao.VisitanteDAO;
+import dao.VisitanteDAOImpl;
+import model.Visitante;
 import service.GateService;
 import util.PasswordUtil;
 
@@ -13,58 +16,63 @@ import java.io.IOException;
 @WebServlet("/api/validate")
 public class ValidateServlet extends HttpServlet {
 
+  // Bitácora de accesos
   private final AccesoLogDAO logDao = new AccesoLogDAOImpl();
+  // Chequeo de vigencia y consumo de uso
+  private final VisitanteDAO visitanteDao = new VisitanteDAOImpl();
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    String token  = str(req.getParameter("token"));
-    String origin = def(req.getParameter("origin"), "qr");
+    String token  = trim(req.getParameter("token"));
+    String origin = dflt(req.getParameter("origin"), "qr"); // cam|qr|app
 
     boolean ok = false;
     String reason = "invalid";
+    Integer usedCount = null; // devuelve conteo para feedback del escáner
 
-    if (!isEmpty(token)) {
-      try {
-        if (token.startsWith("R:")) {
-          ok = validateResident(token);                 // residentes: ilimitado
-          reason = ok ? "ok" : "invalid_resident_token";
-        } else {
-          ok = logDao.consumeOneUseIfAvailable(token, 2); // visitas: 2 usos
-          reason = ok ? "ok" : "uses_exhausted_or_invalid";
-        }
-      } catch (Exception e) {
-        reason = "server_error";
-      }
-    } else {
+    if (isEmpty(token)) {
       reason = "token_missing";
+      writeJson(resp, ok, reason, usedCount);
+      log(token, origin, ok, reason, null);
+      return;
     }
 
-    // bitácora (sin dir; origin opcional: cam/qr/app)
     try {
-      AccesoLog log = new AccesoLog();
-      log.setTipo(token != null && token.startsWith("R:") ? "RESIDENTE" : "VISITA");
-      log.setToken(token);
-      log.setResultado(ok ? "OK" : "DENEGADO");
-      log.setMotivo(ok ? null : reason);
-      log.setOrigin(origin);
-      logDao.insertar(log);
-    } catch (Exception ignore) {}
+      if (token.startsWith("R:")) {
+        // Residente: ilimitado
+        ok = validateResident(token);
+        reason = ok ? "ok" : "invalid_resident_token";
+        log(token, origin, ok, ok ? null : reason, true);
+      } else {
+        // Visita: vigente por intentos/fecha
+        Visitante vigente = visitanteDao.obtenerPaseVigentePorToken(token);
+        if (vigente != null) {
+          ok = visitanteDao.marcarConsumidoPorToken(token);
+          reason = ok ? "ok" : "no_se_pudo_consumir";
+          // sumar 1 localmente si se consumió (evitamos otro SELECT)
+          usedCount = ok ? (vigente.getUsedCount() + 1) : vigente.getUsedCount();
+        } else {
+          ok = false;
+          reason = "no_vigente";
+        }
+        log(token, origin, ok, ok ? null : reason, false);
+      }
+    } catch (Exception e) {
+      ok = false;
+      reason = "server_error";
+      log(token, origin, ok, reason, null);
+    }
 
-    // abrir talanquera cuando es válido
+    writeJson(resp, ok, reason, usedCount);
+
     if (ok) {
       try { new GateService().abrir(); } catch (Exception ignore) {}
     }
-
-    resp.setContentType("application/json; charset=UTF-8");
-    resp.getWriter().write("{\"valid\":" + ok + ",\"reason\":\"" + reason + "\"}");
   }
 
-  // --- helpers ---
-  private static String str(String s) { return s == null ? null : s.trim(); }
-  private static boolean isEmpty(String s) { return s == null || s.isEmpty(); }
-  private static String def(String s, String d) { s = str(s); return isEmpty(s) ? d : s; }
+  // --- util ---
 
-  // token residente: R:<id>:<firma32>, firma= sha256(secret+":"+id)[0..31]
+  // Token residente: R:<id>:<firma32>, firma = sha256(secret+":"+id)[0..31]
   private boolean validateResident(String token) {
     try {
       String[] p = token.split(":");
@@ -76,4 +84,26 @@ public class ValidateServlet extends HttpServlet {
       return expected.equals(firma);
     } catch (Exception e) { return false; }
   }
+
+  private void log(String token, String origin, boolean ok, String motivo, Boolean esResidente) {
+    try {
+      model.AccesoLog a = new model.AccesoLog();
+      a.setTipo(Boolean.TRUE.equals(esResidente) ? "RESIDENTE" : "VISITA");
+      a.setToken(token);
+      a.setResultado(ok ? "OK" : "DENEGADO");
+      a.setMotivo(motivo);
+      a.setOrigin(origin);
+      logDao.insertar(a);
+    } catch (Exception ignore) {}
+  }
+
+  private void writeJson(HttpServletResponse resp, boolean ok, String reason, Integer usedCount) throws IOException {
+    resp.setContentType("application/json; charset=UTF-8");
+    String extra = (usedCount == null) ? "" : ",\"used_count\":" + usedCount;
+    resp.getWriter().write("{\"valid\":" + ok + ",\"reason\":\"" + reason + "\"" + extra + "}");
+  }
+
+  private static String trim(String s) { return s == null ? null : s.trim(); }
+  private static boolean isEmpty(String s) { return s == null || s.isEmpty(); }
+  private static String dflt(String s, String d) { s = trim(s); return isEmpty(s) ? d : s; }
 }

@@ -9,9 +9,7 @@ import java.util.List;
 
 public class VisitanteDAOImpl implements VisitanteDAO {
 
-    // -------------------------
-    // MAPPER (usa alias del SELECT)
-    // -------------------------
+    // Mapea una fila a Visitante
     private Visitante map(ResultSet rs) throws Exception {
         Visitante v = new Visitante();
         v.setId(rs.getInt("id"));
@@ -21,24 +19,19 @@ public class VisitanteDAOImpl implements VisitanteDAO {
         v.setDestinoNumeroCasa(rs.getString("destino_numero_casa"));
         v.setEmail(rs.getString("email"));
         v.setToken(rs.getString("token"));
-        v.setExpiraEn(rs.getTimestamp("expira_en"));     // alias de qr_fin
-        v.setEstado(rs.getString("estado"));             // enum: emitido/activo/consumido/cancelado
-        v.setCreadoEn(rs.getTimestamp("creado_en"));     // timestamp
-        v.setUsedCount(rs.getInt("used_count"));         // usado desde columna/expresión
+        v.setExpiraEn(rs.getTimestamp("expira_en"));
+        v.setEstado(rs.getString("estado"));
+        v.setCreadoEn(rs.getTimestamp("creado_en"));
+        v.setUsedCount(rs.getInt("used_count"));
         return v;
     }
 
-    // -------------------------
-    // CREAR (ajustado a tu esquema)
-    // -------------------------
+    // Crear visitante (estado inicial: emitido)
     @Override
     public boolean crear(Visitante v) {
-        // Insert mínimo con columnas que existen en tu tabla
-        // nombre, dpi, motivo, destino_numero_casa, (opc) email, (opc) token, (opc) qr_fin, estado
         String sql = "INSERT INTO visitantes " +
                 "(nombre, dpi, motivo, destino_numero_casa, email, token, qr_fin, estado) " +
                 "VALUES (?,?,?,?,?,?,?,?)";
-
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
 
@@ -54,12 +47,10 @@ public class VisitanteDAOImpl implements VisitanteDAO {
             else ps.setString(6, v.getToken().trim());
 
             if (v.getExpiraEn() == null) ps.setNull(7, Types.TIMESTAMP);
-            else ps.setTimestamp(7, (v.getExpiraEn() instanceof Timestamp)
-                    ? (Timestamp) v.getExpiraEn()
-                    : new Timestamp(v.getExpiraEn().getTime()));
+            else if (v.getExpiraEn() instanceof Timestamp) ps.setTimestamp(7, (Timestamp) v.getExpiraEn());
+            else ps.setTimestamp(7, new Timestamp(v.getExpiraEn().getTime()));
 
-            ps.setString(8, "emitido"); // estado inicial
-
+            ps.setString(8, "emitido");
             return ps.executeUpdate() == 1;
 
         } catch (SQLIntegrityConstraintViolationException dup) {
@@ -69,9 +60,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
         }
     }
 
-    // -------------------------
-    // LISTAR (ajustado a columnas reales)
-    // -------------------------
+    // Listar con filtros básicos
     @Override
     public List<Visitante> listar(String desde, String hasta, String destinoNumeroCasa, String dpi) {
         List<Visitante> out = new ArrayList<>();
@@ -79,10 +68,10 @@ public class VisitanteDAOImpl implements VisitanteDAO {
         StringBuilder sql = new StringBuilder(
             "SELECT id, nombre, dpi, motivo, destino_numero_casa, " +
             "       email, token, " +
-            "       qr_fin AS expira_en, " +                 // alias
+            "       qr_fin AS expira_en, " +
             "       estado, " +
             "       COALESCE(creado_en, NOW()) AS creado_en, " +
-            "       COALESCE(used_count, 0) AS used_count " + // columna existe en tu tabla
+            "       COALESCE(used_count, 0) AS used_count " +
             "FROM visitantes WHERE 1=1"
         );
 
@@ -119,9 +108,7 @@ public class VisitanteDAOImpl implements VisitanteDAO {
         return out;
     }
 
-    // -------------------------
-    // OBTENER POR ID
-    // -------------------------
+    // Obtener por id
     @Override
     public Visitante obtener(int id) {
         String sql =
@@ -132,7 +119,6 @@ public class VisitanteDAOImpl implements VisitanteDAO {
             "       COALESCE(creado_en, NOW()) AS creado_en, " +
             "       COALESCE(used_count, 0) AS used_count " +
             "FROM visitantes WHERE id=? LIMIT 1";
-
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -144,14 +130,9 @@ public class VisitanteDAOImpl implements VisitanteDAO {
         }
     }
 
-    // -------------------------
-    // VALIDACIÓN POR TOKEN (vigente)
-    // -------------------------
+    // Pase vigente por token
     @Override
     public Visitante obtenerPaseVigentePorToken(String token) {
-        // vigente si: estado en ('emitido','activo') y
-        //   (visit_type='por_intentos' y used_count < usos_max)  OR
-        //   (visit_type='visita' y (qr_fin IS NULL o qr_fin>=NOW()))
         String sql =
             "SELECT id, nombre, dpi, motivo, destino_numero_casa, " +
             "       email, token, " +
@@ -162,10 +143,10 @@ public class VisitanteDAOImpl implements VisitanteDAO {
             "FROM visitantes " +
             "WHERE token=? " +
             "  AND estado IN ('emitido','activo') " +
-            "  AND ( (visit_type='por_intentos' AND COALESCE(used_count,0) < COALESCE(usos_max,2)) " +
+            "  AND COALESCE(used_count,0) < COALESCE(usos_max,2) " +
+            "  AND ( visit_type='por_intentos' " +
             "     OR (visit_type='visita' AND (qr_fin IS NULL OR qr_fin >= NOW())) ) " +
             "LIMIT 1";
-
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, token);
@@ -177,23 +158,17 @@ public class VisitanteDAOImpl implements VisitanteDAO {
         }
     }
 
-    // -------------------------
-    // CONSUMIR UN USO POR TOKEN
-    // -------------------------
+    // Consumir un uso y marcar 'consumido' si llega al tope
     @Override
     public boolean marcarConsumidoPorToken(String token) {
-        // incrementa used_count y, si se alcanzó el tope para por_intentos, marca 'consumido'
         String sql =
             "UPDATE visitantes " +
-            "SET last_use_at = NOW(), " +
-            "    used_count = COALESCE(used_count,0) + 1, " +
-            "    estado = CASE " +
-            "       WHEN visit_type='por_intentos' " +
-            "         AND (COALESCE(used_count,0) + 1) >= COALESCE(usos_max,2) " +
-            "       THEN 'consumido' " +
-            "       ELSE estado END " +
+            "SET first_use_at = COALESCE(first_use_at, NOW()), " +
+            "    last_use_at  = NOW(), " +
+            "    used_count   = COALESCE(used_count,0) + 1, " +
+            "    estado = CASE WHEN (COALESCE(used_count,0) + 1) >= COALESCE(usos_max,2) " +
+            "                  THEN 'consumido' ELSE estado END " +
             "WHERE token=? AND estado IN ('emitido','activo')";
-
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, token);
@@ -204,29 +179,26 @@ public class VisitanteDAOImpl implements VisitanteDAO {
         }
     }
 
-    // -------------------------
-    // APROBAR/RECHAZAR (usa 'estado')
-    // -------------------------
+    // Aprobar (cambia a activo) — sin modificado_por
     @Override
     public boolean aprobar(int idVisitante, Integer modificadoPor) {
-        final String sql = "UPDATE visitantes SET estado='activo', modificado_por=? WHERE id=?";
+        final String sql = "UPDATE visitantes SET estado='activo' WHERE id=?";
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setObject(1, modificadoPor);
-            ps.setInt(2, idVisitante);
+            ps.setInt(1, idVisitante);
             return ps.executeUpdate() == 1;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    // Rechazar (cambia a cancelado) — sin modificado_por
     @Override
     public boolean rechazar(int idVisitante, Integer modificadoPor) {
-        final String sql = "UPDATE visitantes SET estado='cancelado', modificado_por=? WHERE id=?";
+        final String sql = "UPDATE visitantes SET estado='cancelado' WHERE id=?";
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setObject(1, modificadoPor);
-            ps.setInt(2, idVisitante);
+            ps.setInt(1, idVisitante);
             return ps.executeUpdate() == 1;
         } catch (Exception e) {
             throw new RuntimeException(e);
