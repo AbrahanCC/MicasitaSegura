@@ -33,9 +33,9 @@ public class LoginServlet extends HttpServlet {
             String ctx = req.getContextPath();
             if (rol != null) {
                 switch (rol) {
-                    case 1: resp.sendRedirect(ctx + "/view/admin/dashboard.jsp");  return;
-                    case 2: resp.sendRedirect(ctx + "/view/residente/qr.jsp");     return;
-                    case 3: resp.sendRedirect(ctx + "/visitantes?op=new");          return;
+                    case 1: resp.sendRedirect(ctx + "/view/admin/dashboard.jsp");  return; // ADMIN
+                    case 2: resp.sendRedirect(ctx + "/view/guardia/control.jsp");  return; // GUARDIA
+                    case 3: resp.sendRedirect(ctx + "/view/residente/qr.jsp");     return; // RESIDENTE
                 }
             }
             resp.sendRedirect(ctx + "/index.jsp");
@@ -67,9 +67,6 @@ public class LoginServlet extends HttpServlet {
         }
         System.out.println("---------------");
 
-        // *** aquí está el arreglo del login ***
-        // Se elimina el "modo prueba" que comparaba SIEMPRE contra "123" para el usuario admin,
-        // lo cual hacía fallar la validación cuando la contraseña real era "admin#123".
         boolean ok = (u != null && u.isActivo() && u.getPassHash() != null
                 && PasswordUtil.verify(password, u.getPassHash()));
 
@@ -90,13 +87,13 @@ public class LoginServlet extends HttpServlet {
         HttpSession s = req.getSession(true);
         s.setAttribute("uid", u.getId());
         s.setAttribute("uname", u.getNombre());
-        s.setAttribute("rol", u.getRolId());
+        s.setAttribute("rol", u.getRolId());  // 1=ADMIN, 2=GUARDIA, 3=RESIDENTE
 
         String ctx = req.getContextPath();
         switch (u.getRolId()) {
-            case 1: resp.sendRedirect(ctx + "/view/admin/dashboard.jsp");  return;
-            case 2: resp.sendRedirect(ctx + "/view/residente/qr.jsp");     return;
-            case 3: resp.sendRedirect(ctx + "/visitantes?op=new");          return;
+            case 1: resp.sendRedirect(ctx + "/view/admin/dashboard.jsp");  return; // ADMIN
+            case 2: resp.sendRedirect(ctx + "/view/guardia/control.jsp");  return; // GUARDIA
+            case 3: resp.sendRedirect(ctx + "/view/residente/qr.jsp");     return; // RESIDENTE
             default: resp.sendRedirect(ctx + "/index.jsp");                return;
         }
     }

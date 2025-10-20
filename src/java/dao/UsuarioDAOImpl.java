@@ -27,6 +27,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         u.setRolId(rs.getInt("rol_id"));
         try { u.setEstado(rs.getInt("estado")); } catch (SQLException ignore) {}
         u.setActivo(rs.getBoolean("activo"));
+        try { u.setRolNombre(rs.getString("rol_nombre")); } catch (SQLException ignore) {} 
         return u;
     }
 
@@ -35,8 +36,11 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     @Override
     public List<Usuario> listar() {
         List<Usuario> list = new ArrayList<>();
-        String sql = "SELECT id,dpi,nombre,apellidos,correo,casa,lote,username,password_hash,rol_id,activo " +
-                     "FROM usuarios WHERE activo=1 ORDER BY id DESC";
+        String sql =
+            "SELECT u.id,u.dpi,u.nombre,u.apellidos,u.correo,u.casa,u.lote,u.username,u.password_hash," +
+            "u.rol_id,u.activo,r.nombre AS rol_nombre " +
+            "FROM usuarios u JOIN roles r ON r.id = u.rol_id " +
+            "WHERE u.activo=1 ORDER BY u.id DESC";
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -48,8 +52,10 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     //Obtiene un usuario por id FA1 editar
     @Override
     public Usuario obtener(int id) {
-        String sql = "SELECT id,dpi,nombre,apellidos,correo,casa,lote,username,password_hash,rol_id,activo " +
-                     "FROM usuarios WHERE id=?";
+        String sql =
+            "SELECT u.id,u.dpi,u.nombre,u.apellidos,u.correo,u.casa,u.lote,u.username,u.password_hash," +
+            "u.rol_id,u.activo,r.nombre AS rol_nombre " +
+            "FROM usuarios u JOIN roles r ON r.id = u.rol_id WHERE u.id=?";
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -59,8 +65,8 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         } catch (Exception e) { throw new RuntimeException(e); }
     }
 
-    //FA1 RN1, RN2, FA3 tras insertar si el rol es RESIDENTE=2 SE ENVIA QR RN3
-     @Override
+    //FA1 RN1, RN2, FA3 tras insertar si el rol es RESIDENTE=3 SE ENVIA QR RN3
+    @Override
     public boolean crear(Usuario u) {
         String sql = "INSERT INTO usuarios " +
                      "(dpi,nombre,apellidos,correo,casa,lote,username,password_hash,rol_id,activo) " +
@@ -72,7 +78,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             ps.setString(i++, u.getDpi());
             ps.setString(i++, u.getNombre());
             ps.setString(i++, u.getApellidos());
-            ps.setString(i++, u.getCorreo());      
+            ps.setString(i++, u.getCorreo());
             ps.setString(i++, u.getNumeroCasa());  // RN1: puede ser null si es guardia
             ps.setString(i++, u.getLote());        // RN1: puede ser null si es guardia
             ps.setString(i++, u.getUsername());
@@ -85,8 +91,8 @@ public class UsuarioDAOImpl implements UsuarioDAO {
                 if (rs.next()) u.setId(rs.getInt(1));
             }
 
-            // RN3 creación y envío de QR si es RESIDENTE (rol_id = 2)
-            if (ok && u.getRolId() == 2) {
+            // RN3 creación y envío de QR si es RESIDENTE (rol_id = 3)
+            if (ok && u.getRolId() == 3) {
                 try {
                     String token = TokenUtil.generateResidentToken(u.getId());
                     String base  = System.getProperty("APP_BASE_URL", "http://localhost:8080/MiCasitaSegura");
@@ -108,7 +114,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
         } catch (Exception e) { throw new RuntimeException(e); }
     }
-    
+
     //Actualiza datos FA1, si viene passHash, actualiza contraseña.
     @Override
     public boolean actualizar(Usuario u) {
@@ -147,8 +153,11 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     // ---------- Login / búsquedas ----------
     @Override
     public Usuario obtenerPorUsuarioOCorreo(String userOrMail) {
-        String sql = "SELECT id,dpi,nombre,apellidos,correo,casa,username,password_hash,rol_id,estado,activo " +
-                     "FROM usuarios WHERE (username=? OR correo=?) LIMIT 1";
+        String sql =
+            "SELECT u.id,u.dpi,u.nombre,u.apellidos,u.correo,u.casa,u.username,u.password_hash," +
+            "u.rol_id,u.estado,u.activo,r.nombre AS rol_nombre " +
+            "FROM usuarios u JOIN roles r ON r.id = u.rol_id " +
+            "WHERE (u.username=? OR u.correo=?) LIMIT 1";
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, userOrMail);
@@ -158,12 +167,15 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             }
         } catch (Exception e) { throw new RuntimeException(e); }
     }
-    
+
     //Búsqueda por correo FA3: duplicados
     @Override
     public Usuario buscarPorCorreo(String correo) {
-        String sql = "SELECT id,dpi,nombre,apellidos,correo,casa,lote,username,password_hash,rol_id,estado,activo " +
-                     "FROM usuarios WHERE correo=? LIMIT 1";
+        String sql =
+            "SELECT u.id,u.dpi,u.nombre,u.apellidos,u.correo,u.casa,u.lote,u.username,u.password_hash," +
+            "u.rol_id,u.estado,u.activo,r.nombre AS rol_nombre " +
+            "FROM usuarios u JOIN roles r ON r.id = u.rol_id " +
+            "WHERE u.correo=? LIMIT 1";
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, correo);
@@ -172,53 +184,53 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             }
         } catch (Exception e) { throw new RuntimeException(e); }
     }
-    
+
     //Búsqueda para directorio
-        @Override
-        public List<Usuario> buscarDirectorio(String nombres, String apellidos, String lote, String numeroCasa) {
-            List<Usuario> out = new ArrayList<>();
-            // Filtra solo residentes activos
-            StringBuilder sql = new StringBuilder(
-                "SELECT id,dpi,nombre,apellidos,correo,casa,lote,username,password_hash,rol_id,estado,activo " +
-                "FROM usuarios WHERE activo=1 AND rol_id=2"
-            );
-            List<Object> params = new ArrayList<>();
+    @Override
+    public List<Usuario> buscarDirectorio(String nombres, String apellidos, String lote, String numeroCasa) {
+        List<Usuario> out = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+            "SELECT u.id,u.dpi,u.nombre,u.apellidos,u.correo,u.casa,u.lote,u.username,u.password_hash," +
+            "u.rol_id,u.estado,u.activo,r.nombre AS rol_nombre " +
+            "FROM usuarios u JOIN roles r ON r.id = u.rol_id " +
+            "WHERE u.activo=1 AND u.rol_id=3"
+        );
+        List<Object> params = new ArrayList<>();
 
-            //Parámetros opcionales y búsqueda sin distinción de mayúsculas
-            if (nombres != null && !nombres.trim().isEmpty()) { 
-                sql.append(" AND UPPER(nombre) LIKE ?"); 
-                params.add("%" + nombres.trim().toUpperCase() + "%"); 
-            }
-            if (apellidos != null && !apellidos.trim().isEmpty()) { 
-                sql.append(" AND UPPER(apellidos) LIKE ?"); 
-                params.add("%" + apellidos.trim().toUpperCase() + "%"); 
-            }
-            if (lote != null && !lote.trim().isEmpty()) { 
-                sql.append(" AND lote = ?"); 
-                params.add(lote.trim()); 
-            }
-            if (numeroCasa != null && !numeroCasa.trim().isEmpty()) { 
-                sql.append(" AND casa = ?"); 
-                params.add(numeroCasa.trim()); 
-            }
-            sql.append(" ORDER BY apellidos, nombre");
-
-            try (Connection cn = DBConnection.getConnection();
-                 PreparedStatement ps = cn.prepareStatement(sql.toString())) {
-                for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) out.add(map(rs));
-                }
-            } catch (Exception e) { throw new RuntimeException(e); }
-            return out;
+        if (nombres != null && !nombres.trim().isEmpty()) {
+            sql.append(" AND UPPER(u.nombre) LIKE ?");
+            params.add("%" + nombres.trim().toUpperCase() + "%");
         }
-    
+        if (apellidos != null && !apellidos.trim().isEmpty()) {
+            sql.append(" AND UPPER(u.apellidos) LIKE ?");
+            params.add("%" + apellidos.trim().toUpperCase() + "%");
+        }
+        if (lote != null && !lote.trim().isEmpty()) {
+            sql.append(" AND u.lote = ?");
+            params.add(lote.trim());
+        }
+        if (numeroCasa != null && !numeroCasa.trim().isEmpty()) {
+            sql.append(" AND u.casa = ?");
+            params.add(numeroCasa.trim());
+        }
+        sql.append(" ORDER BY u.apellidos, u.nombre");
+
+        try (Connection cn = DBConnection.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) out.add(map(rs));
+            }
+        } catch (Exception e) { throw new RuntimeException(e); }
+        return out;
+    }
+
     //Alias práctico usuario o correo
     @Override
     public Usuario buscarPorIdentificador(String ident) {
         return obtenerPorUsuarioOCorreo(ident);
     }
-    
+
     //Actualiza hash de contraseña edición FA1
     @Override
     public void actualizarPassword(int id, String nuevoHash) {
@@ -236,7 +248,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     @Override
     public List<String> listarCorreosResidentesActivos() {
         String sql = "SELECT correo FROM usuarios " +
-                     "WHERE rol_id = 2 AND activo = 1 AND correo IS NOT NULL AND correo <> '' " +
+                     "WHERE rol_id = 3 AND activo = 1 AND correo IS NOT NULL AND correo <> '' " +
                      "ORDER BY correo";
         List<String> out = new ArrayList<>();
         try (Connection cn = DBConnection.getConnection();
@@ -248,13 +260,12 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     }
 
     // Obtener ID de residente por casa / lote ----------
-@Override
+    @Override
     public Integer findResidenteId(String numeroCasa, String lote) {
-        // Si existe lote en BD, intentamos por ambos. Si no, por casa solamente.
         String sqlConLote =
-            "SELECT id FROM usuarios WHERE rol_id=2 AND activo=1 AND casa=? AND lote=? LIMIT 1";
+            "SELECT id FROM usuarios WHERE rol_id=3 AND activo=1 AND casa=? AND lote=? LIMIT 1";
         String sqlSoloCasa =
-            "SELECT id FROM usuarios WHERE rol_id=2 AND activo=1 AND casa=? LIMIT 1";
+            "SELECT id FROM usuarios WHERE rol_id=3 AND activo=1 AND casa=? LIMIT 1";
 
         try (Connection cn = DBConnection.getConnection()) {
             if (lote != null && !lote.trim().isEmpty()) {

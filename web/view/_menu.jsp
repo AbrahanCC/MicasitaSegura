@@ -1,6 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
-  // Roles: 1=ADMIN, 2=RESIDENTE, 3=GUARDIA
+  // Roles: 1=ADMIN, 2=GUARDIA, 3=RESIDENTE 
   Integer _mrol = (Integer) session.getAttribute("rol");
 %>
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
@@ -47,7 +47,7 @@
         <% } %>
 
         <%-- Guardia --%>
-        <% if (_mrol != null && _mrol == 3) { %>
+        <% if (_mrol != null && _mrol == 2) { %>
           <li class="nav-item">
             <!-- Acceso a opción "Directorio Residencial" (para Guardia) -->
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
@@ -69,10 +69,15 @@
               <i class="bi bi-megaphone me-1"></i>Enviar avisos
             </a>
           </li>
+          <li class="nav-item">
+              <a class="nav-link" href="${pageContext.request.contextPath}/CU6/chat.jsp">
+                  <i class="bi bi-chat-dots me-1"></i>Chat general
+              </a>
+          </li>
         <% } %>
 
         <%-- Residente --%>
-        <% if (_mrol != null && _mrol == 2) { %>
+        <% if (_mrol != null && _mrol == 3) { %>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/view/residente/qr.jsp">
               <i class="bi bi-qr-code me-1"></i>Mi QR

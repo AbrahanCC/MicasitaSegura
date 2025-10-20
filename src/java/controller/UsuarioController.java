@@ -92,7 +92,7 @@ public class UsuarioController extends HttpServlet {
         String pass       = req.getParameter("pass");
 
         int rolInt = Validador.noVacio(rolId) ? Integer.parseInt(rolId) : 0;
-        boolean esGuardia = (rolInt == 3); // 1=ADMIN, 2=RESIDENTE, 3=GUARDIA
+        boolean esGuardia = (rolInt == 2); // 1=ADMIN, 2=GUARDIA, 3=RESIDENTE
 
         // RN1: si es GUARDIA, lote/numeroCasa no aplican
         if (esGuardia) {

@@ -1,9 +1,12 @@
-<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%
-  // Autorización: ADMIN(1) y GUARDIA(3)
+  // Autorización: ADMIN(1) y GUARDIA(2)
   String ctx = request.getContextPath();
   Integer rol = (Integer) session.getAttribute("rol");
-  if (rol == null || (rol != 1 && rol != 3)) { response.sendRedirect(ctx + "/login"); return; }
+  if (rol == null || (rol != 1 && rol != 2)) {
+    response.sendRedirect(ctx + "/login");
+    return;
+  }
 %>
 <!DOCTYPE html>
 <html>

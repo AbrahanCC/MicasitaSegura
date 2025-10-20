@@ -1,15 +1,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.*,model.Visitante"%>
 <%
-String ctx = request.getContextPath();
-List<Visitante> data = (List<Visitante>) request.getAttribute("data");
-String msg   = (String) request.getAttribute("msg");
-String error = (String) request.getAttribute("error");
-
-String qDesde   = request.getParameter("desde")             != null ? request.getParameter("desde")             : "";
-String qHasta   = request.getParameter("hasta")             != null ? request.getParameter("hasta")             : "";
-String qDestino = request.getParameter("destinoNumeroCasa") != null ? request.getParameter("destinoNumeroCasa") : "";
-String qDpi     = request.getParameter("dpi")               != null ? request.getParameter("dpi")               : "";
+  String ctx = request.getContextPath();
+  List<Visitante> data = (List<Visitante>) request.getAttribute("data");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -22,7 +15,6 @@ String qDpi     = request.getParameter("dpi")               != null ? request.ge
   <link href="<%=ctx%>/assets/css/app.css" rel="stylesheet">
 </head>
 <body>
-
 <%@ include file="/view/_menu.jsp" %>
 
 <div class="container py-4 d-flex justify-content-center">
@@ -31,8 +23,8 @@ String qDpi     = request.getParameter("dpi")               != null ? request.ge
     <div class="d-flex align-items-center mb-4">
       <div class="brand-badge me-3"><i class="bi bi-people"></i></div>
       <div>
-        <h4 class="mb-0">Visitantes</h4>
-        <small class="text-muted">Filtra por fecha, destino o DPI</small>
+        <h4 class="mb-0">Registros de visitantes</h4>
+        <small class="text-muted">Listado general</small>
       </div>
       <div class="ms-auto">
         <a class="btn btn-brand" href="<%=ctx%>/visitantes?op=new">
@@ -41,64 +33,53 @@ String qDpi     = request.getParameter("dpi")               != null ? request.ge
       </div>
     </div>
 
-    <% if (error != null) { %>
-      <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i><%=error%></div>
-    <% } %>
-    <% if (msg != null) { %>
-      <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i><%=msg%></div>
-    <% } %>
-
-    <form class="row g-3 mb-4" method="get" action="<%=ctx%>/visitantes">
-      <div class="col-sm-3">
-        <label class="form-label">Desde</label>
-        <input class="form-control" type="date" name="desde" value="<%=qDesde%>">
-      </div>
-      <div class="col-sm-3">
-        <label class="form-label">Hasta</label>
-        <input class="form-control" type="date" name="hasta" value="<%=qHasta%>">
-      </div>
-      <div class="col-sm-3">
-        <label class="form-label">Destino (A-12)</label>
-        <input class="form-control" name="destinoNumeroCasa" value="<%=qDestino%>">
-      </div>
-      <div class="col-sm-3">
-        <label class="form-label">DPI</label>
-        <input class="form-control" name="dpi" value="<%=qDpi%>">
-      </div>
-      <div class="col-12 d-flex gap-2">
-        <button class="btn btn-brand" type="submit"><i class="bi bi-funnel me-1"></i>Filtrar</button>
-        <a class="btn btn-outline-secondary" href="<%=ctx%>/visitantes"><i class="bi bi-x-circle me-1"></i>Limpiar</a>
-      </div>
-    </form>
-
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
-            <th>Fecha/Hora</th>
-            <th>Nombre</th>
+            <th>Fecha registro</th>
+            <th>Nombre visitante</th>
             <th>DPI</th>
-            <th>Motivo</th>
+            <th>Tipo de visita</th>
             <th>Destino</th>
-            <th>Guardia</th>
+            <th>Estado</th>
+            <th class="text-center">Acciones</th>
           </tr>
         </thead>
         <tbody>
         <%
           if (data == null || data.isEmpty()) {
         %>
-          <tr><td colspan="6">Sin registros.</td></tr>
+          <tr><td colspan="7" class="text-center text-muted">No hay registros.</td></tr>
         <%
           } else {
             for (Visitante v : data) {
         %>
           <tr>
-            <td><%= v.getFechaHora() %></td>
+            <td><%= v.getCreadoEn() != null ? v.getCreadoEn() : "" %></td>
             <td><%= v.getNombre() %></td>
             <td><%= v.getDpi() %></td>
-            <td><%= v.getMotivo() %></td>
-            <td><span class="badge text-bg-secondary"><%= v.getDestinoNumeroCasa() %></span></td>
-            <td><%= v.getCreadoPorGuardiaId() %></td>
+            <td><%= v.getVisitType() != null ? v.getVisitType() : "-" %></td>
+            <td><%= v.getDestinoNumeroCasa() %></td>
+            <td>
+              <span class="badge 
+                <%= "activo".equals(v.getEstado()) ? "text-bg-success" :
+                    "emitido".equals(v.getEstado()) ? "text-bg-info" :
+                    "cancelado".equals(v.getEstado()) ? "text-bg-danger" :
+                    "text-bg-secondary" %>">
+                <%= v.getEstado() %>
+              </span>
+            </td>
+            <td class="text-center">
+              <a href="<%=ctx%>/api/qr?token=<%=v.getToken()%>" class="btn btn-sm btn-outline-primary me-1" title="Descargar QR">
+                <i class="bi bi-qr-code"></i>
+              </a>
+              <a href="<%=ctx%>/visitantes?op=cancel&id=<%=v.getId()%>" 
+                 class="btn btn-sm btn-outline-danger" 
+                 onclick="return confirm('¿Desea cancelar la visita de <%=v.getNombre()%>?')">
+                <i class="bi bi-x-circle"></i>
+              </a>
+            </td>
           </tr>
         <%
             }
@@ -107,7 +88,6 @@ String qDpi     = request.getParameter("dpi")               != null ? request.ge
         </tbody>
       </table>
     </div>
-
   </div>
 </div>
 

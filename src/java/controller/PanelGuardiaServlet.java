@@ -12,7 +12,7 @@ public class PanelGuardiaServlet extends HttpServlet {
       throws ServletException, IOException {
     HttpSession s = req.getSession(false);
     Integer rol = (s == null) ? null : (Integer) s.getAttribute("rol");
-    if (rol == null || rol != 3) { // 3 = GUARDIA
+    if (rol == null || rol != 2) { // 2 = GUARDIA
       resp.sendRedirect(req.getContextPath() + "/login");
       return;
     }

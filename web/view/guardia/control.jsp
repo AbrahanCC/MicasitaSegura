@@ -1,10 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" import="javax.servlet.http.HttpSession" %>
 <%
-  // ---- Guardia autenticado (rol=3) o redirige a /login ----
+  // ---- Guardia autenticado (rol=2) o redirige a /login ----
   HttpSession s = request.getSession(false);
   Integer rol   = (s == null) ? null : (Integer) s.getAttribute("rol");
   String uname  = (s == null) ? ""   : (String)  s.getAttribute("uname");
-  if (rol == null || rol != 3) {
+  if (rol == null || rol != 2) {
     response.sendRedirect(request.getContextPath() + "/login");
     return;
   }
@@ -46,6 +46,10 @@
 
       <a class="btn btn-outline-warning btn-lg" href="${pageContext.request.contextPath}/guardia/avisos">
         <i class="bi bi-megaphone me-2"></i>Mandar avisos
+      </a>
+        
+      <a class="btn btn-outline-warning btn-lg" href="${pageContext.request.contextPath}/CU6/chat.jsp?auto=1">
+        <i class="bi bi-megaphone me-2"></i>Chat general
       </a>
     </div>
 

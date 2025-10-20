@@ -11,17 +11,13 @@ public class Usuario {
     private String username;
     private String passHash;
     private int rolId;
+    private String RolNombre;
     private boolean activo;
-
-    // puede ser null
     private Integer estado;
 
-    public Usuario() { }
+    public Usuario(){}
 
-    public Usuario(int id, String nombre, String apellidos, String dpi,
-                   String numeroCasa, String lote, String correo,
-                   String username, String passHash, int rolId,
-                   boolean activo, Integer estado) {
+    public Usuario(int id, String nombre, String apellidos, String dpi, String numeroCasa, String lote, String correo, String username, String passHash, int rolId, String RolNombre, boolean activo, Integer estado) {
         this.id = id;
         this.nombre = nombre;
         this.apellidos = apellidos;
@@ -32,43 +28,112 @@ public class Usuario {
         this.username = username;
         this.passHash = passHash;
         this.rolId = rolId;
+        this.RolNombre = RolNombre;
         this.activo = activo;
         this.estado = estado;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getApellidos() { return apellidos; }
-    public void setApellidos(String apellidos) { this.apellidos = apellidos; }
+    public String getNombre() {
+        return nombre;
+    }
 
-    public String getDpi() { return dpi; }
-    public void setDpi(String dpi) { this.dpi = dpi; }
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
 
-    public String getNumeroCasa() { return numeroCasa; }
-    public void setNumeroCasa(String numeroCasa) { this.numeroCasa = numeroCasa; }
+    public String getApellidos() {
+        return apellidos;
+    }
 
-    public String getLote() { return lote; }
-    public void setLote(String lote) { this.lote = lote; }
+    public void setApellidos(String apellidos) {
+        this.apellidos = apellidos;
+    }
 
-    public String getCorreo() { return correo; }
-    public void setCorreo(String correo) { this.correo = correo; }
+    public String getDpi() {
+        return dpi;
+    }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public void setDpi(String dpi) {
+        this.dpi = dpi;
+    }
 
-    public String getPassHash() { return passHash; }
-    public void setPassHash(String passHash) { this.passHash = passHash; }
+    public String getNumeroCasa() {
+        return numeroCasa;
+    }
 
-    public int getRolId() { return rolId; }
-    public void setRolId(int rolId) { this.rolId = rolId; }
+    public void setNumeroCasa(String numeroCasa) {
+        this.numeroCasa = numeroCasa;
+    }
 
-    public boolean isActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo = activo; }
+    public String getLote() {
+        return lote;
+    }
 
-    public Integer getEstado() { return estado; }
-    public void setEstado(Integer estado) { this.estado = estado; } // <— SIN throw
+    public void setLote(String lote) {
+        this.lote = lote;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassHash() {
+        return passHash;
+    }
+
+    public void setPassHash(String passHash) {
+        this.passHash = passHash;
+    }
+
+    public int getRolId() {
+        return rolId;
+    }
+
+    public void setRolId(int rolId) {
+        this.rolId = rolId;
+    }
+
+    public String getRolNombre() {
+        return RolNombre;
+    }
+
+    public void setRolNombre(String RolNombre) {
+        this.RolNombre = RolNombre;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    public Integer getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Integer estado) {
+        this.estado = estado;
+    }
 }

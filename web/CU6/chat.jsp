@@ -1,8 +1,4 @@
-<%-- 
-    Document   : chat
-    Created on : 2/10/2025, 11:14:40 AM
-    Author     : abrah
---%>
+<%-- CU6/chat.jsp --%>
 <%@page contentType="text/html;charset=UTF-8"%>
 <%@page import="java.util.List"%>
 <%@page import="model.Mensaje,model.Conversacion"%>
@@ -12,15 +8,14 @@
   HttpSession s = request.getSession(false);
   Integer rol = (s == null) ? null : (Integer) s.getAttribute("rol");
   if (rol == null) { response.sendRedirect(request.getContextPath() + "/login"); return; }
-  if (rol != 1 && rol != 2) { response.sendError(403); return; } // Admin(1) y Residente(2)
+  // Para pruebas: permiten los 3 roles (1,2,3)
+  if (rol != 1 && rol != 2 && rol != 3) { response.sendError(403); return; }
 
   // Atributos puestos por el servlet ChatServlet
   Conversacion c = (Conversacion) request.getAttribute("conv");
   List<Mensaje> mensajes = (List<Mensaje>) request.getAttribute("mensajes");
 
-  // El id de usuario en sesión es "uid"
   Integer yoId = (Integer) s.getAttribute("uid");
-
   if (c == null || mensajes == null || yoId == null) {
     response.sendRedirect(request.getContextPath() + "/comunicacion");
     return;
@@ -46,11 +41,8 @@
   <div class="chat-box p-3 mb-3 border rounded">
   <%
     for (Mensaje m : mensajes) {
-      // --- AQUÍ ESTÁ EL ARREGLO ---
-      // getIdEmisor() es int; no lo compares con null. Compara enteros.
       int emisor = m.getIdEmisor();
       boolean mine = (yoId != null && emisor == yoId.intValue());
-
       String alignClass  = mine ? "justify-content-end" : "justify-content-start";
       String bubbleClass = mine ? "bubble-me"            : "bubble-them";
   %>
@@ -67,7 +59,6 @@
 
   <form method="post" action="${pageContext.request.contextPath}/chat">
     <input type="hidden" name="idConversacion" value="<%= c.getId() %>">
-    <!-- El correo del destinatario lo resuelve el servlet -->
     <input type="hidden" name="correoDest" value="">
     <div class="input-group">
       <input name="contenido" maxlength="200" class="form-control" placeholder="Escribe un mensaje..." required>

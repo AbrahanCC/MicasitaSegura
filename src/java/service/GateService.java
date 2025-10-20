@@ -7,8 +7,7 @@ import java.nio.charset.StandardCharsets;
 
 public class GateService {
   private static String base() {
-    // usa exactamente la IP que te funciona en el navegador
-    String ip = "http://10.97.11.182";
+       String ip = "http://10.97.11.182";
     if (ip.endsWith("/")) ip = ip.substring(0, ip.length()-1);
     return ip;
   }

@@ -6,8 +6,8 @@
         String ctx = request.getContextPath();
         if (rol != null) {
             if (rol == 1) { response.sendRedirect(ctx + "/view/admin/dashboard.jsp"); return; }
-            if (rol == 2) { response.sendRedirect(ctx + "/view/residente/qr.jsp"); return; }
-            if (rol == 3) { response.sendRedirect(ctx + "/view/guardia/control.jsp"); return; }
+            if (rol == 3) { response.sendRedirect(ctx + "/view/residente/qr.jsp"); return; }
+            if (rol == 2) { response.sendRedirect(ctx + "/view/guardia/control.jsp"); return; }
         }
     }
 %>
