@@ -1,7 +1,8 @@
 package dao;
 
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import model.AreaComun;
 import util.DBConnection;
 
@@ -17,14 +18,18 @@ public class AreaComunDAOImpl implements AreaComunDAO {
              PreparedStatement ps = cn.prepareStatement(SQL_LISTAR);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                AreaComun a = new AreaComun(
+                list.add(new AreaComun(
                     rs.getInt("id"),
                     rs.getString("nombre"),
                     rs.getInt("activo") == 1
-                );
-                list.add(a);
+                ));
             }
+        } catch (Exception e) {
+            System.err.println("[AreaComunDAOImpl] listarActivas error: " + e.getMessage());
+            throw e;
         }
+        // log simple de verificación (puedes quitarlo si no lo quieres)
+        System.out.println("[AreaComunDAOImpl] areas activas: " + list.size());
         return list;
     }
 }

@@ -16,7 +16,7 @@ public class ReservaService {
     private final AreaComunDAO areaDAO = new AreaComunDAOImpl();
     private final ReservaDAO reservaDAO = new ReservaDAOImpl();
 
-    public List<AreaComun> listarAreasActivas() throws Exception {
+    public List<AreaComun> listarActivas() throws Exception {
         return areaDAO.listarActivas();
     }
 
@@ -26,7 +26,6 @@ public class ReservaService {
 
     public int crearReserva(Usuario usuario, int areaId, LocalDate fecha,
                             LocalTime ini, LocalTime fin) throws Exception {
-        // Precondiciones básicas del CU (adaptar si tienes roles en sesión)
         if (usuario == null || usuario.getId() <= 0) {
             throw new IllegalArgumentException("Sesión no válida.");
         }
@@ -34,12 +33,12 @@ public class ReservaService {
             throw new IllegalArgumentException("Datos de fecha/hora inválidos.");
         }
 
-        // FA05: disponibilidad
-        boolean ocupado = reservaDAO.existeSolapamiento(areaId, fecha, ini, fin);
-        if (ocupado) {
+        // Verificar disponibilidad (FA05)
+        if (reservaDAO.existeSolapamiento(areaId, fecha, ini, fin)) {
             throw new IllegalStateException("El salón no está disponible en el horario seleccionado, por favor elija otro.");
         }
 
+        // Crear
         Reserva r = new Reserva();
         r.setAreaId(areaId);
         r.setUsuarioId(usuario.getId());
@@ -48,14 +47,35 @@ public class ReservaService {
         r.setHoraFin(fin);
         r.setEstado("CREADA");
 
-        return reservaDAO.crear(r);
+        int idGenerado = reservaDAO.crear(r);
+
+        // Notificación (RN4)
+        String nombreArea = obtenerNombreArea(areaId);
+        new NotificacionService().enqueueReservaCreada(
+            usuario.getCorreo(),
+            nombreArea,
+            fecha.toString(),
+            ini.toString(),
+            fin.toString()
+        );
+
+        return idGenerado;
     }
 
     public void cancelarReserva(int reservaId, Usuario solicitante) throws Exception {
         if (solicitante == null || solicitante.getId() <= 0) {
             throw new IllegalArgumentException("Sesión no válida.");
         }
-        // (Opcional) verificar que la reserva pertenezca al solicitante o que sea admin.
+        // Cancelación lógica
         reservaDAO.cancelar(reservaId);
+    }
+
+    private String obtenerNombreArea(int areaId) {
+        try {
+            for (AreaComun a : listarActivas()) {
+                if (a.getId() == areaId) return a.getNombre();
+            }
+        } catch (Exception ignore) {}
+        return "Área";
     }
 }

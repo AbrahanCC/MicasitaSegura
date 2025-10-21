@@ -4,6 +4,7 @@ import dao.IncidenteDAO;
 import dao.IncidenteDAOImpl;
 import dao.UsuarioDAOImpl;
 import model.Incidente;
+import model.Usuario;
 import service.MailService;
 
 import javax.servlet.ServletException;
@@ -15,14 +16,16 @@ import java.util.List;
 
 @WebServlet("/incidente")
 public class IncidenteServlet extends HttpServlet {
-  // // DAOs/servicios
   private final IncidenteDAO incDAO = new IncidenteDAOImpl();
   private final UsuarioDAOImpl userDAO = new UsuarioDAOImpl();
   private final MailService mail = new MailService();
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    // // muestra el formulario de reporte
+    HttpSession s = req.getSession(false);
+    Integer rol = (s==null)?null:(Integer)s.getAttribute("rol");
+    if (rol == null) { resp.sendRedirect(req.getContextPath()+"/login"); return; }
+    if (rol != 3) { resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Solo residentes pueden reportar incidentes"); return; }
     req.getRequestDispatcher("/CU6/incidente_nuevo.jsp").forward(req, resp);
   }
 
@@ -30,21 +33,23 @@ public class IncidenteServlet extends HttpServlet {
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     req.setCharacterEncoding("UTF-8");
 
-    // // datos de sesión (RN1: solo residente autenticado)
     HttpSession s = req.getSession(false);
     Integer idResidente = (s==null)?null:(Integer)s.getAttribute("uid");
-    String nombreResidente = (s==null)?null:(String)s.getAttribute("uname");
-    String numeroCasa = (s==null)?null:(String)s.getAttribute("casa");
-    String lote = (s==null)?null:(String)s.getAttribute("lote");
+    Integer rol = (s==null)?null:(Integer)s.getAttribute("rol");
     if (idResidente == null) { resp.sendRedirect(req.getContextPath()+"/login"); return; }
+    if (rol == null || rol != 3) { resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Solo residentes"); return; }
 
-    // // inputs
-    String tipo = req.getParameter("tipo");                  // // RN3: tipo de incidente
-    String fechaHoraStr = req.getParameter("fechaHora");     // // "yyyy-MM-ddTHH:mm"
-    String descripcion = req.getParameter("descripcion");    // // máx 200 chars (RN7)
+    // ⚠️ SIEMPRE LEER DOMICILIO DESDE BD PARA EVITAR NULOS EN SESIÓN
+    Usuario u = userDAO.obtener(idResidente);
+    String nombreResidente = (u != null && u.getNombre()!=null) ? u.getNombre() : (String)s.getAttribute("uname");
+    String numeroCasa = (u != null) ? trimOrNull(u.getNumeroCasa()) : null;
+    String lote       = (u != null) ? trimOrNull(u.getLote())       : null;
+
+    String tipo = req.getParameter("tipo");
+    String fechaHoraStr = req.getParameter("fechaHora"); // "yyyy-MM-ddTHH:mm"
+    String descripcion = req.getParameter("descripcion");
 
     try {
-      // // RN7: validación simple de campos obligatorios
       if (tipo==null || tipo.isEmpty() || fechaHoraStr==null || fechaHoraStr.isEmpty()
           || descripcion==null || descripcion.trim().isEmpty() || descripcion.trim().length()>200) {
         req.setAttribute("error","Completa todos los campos correctamente (máx 200 caracteres).");
@@ -52,10 +57,8 @@ public class IncidenteServlet extends HttpServlet {
         return;
       }
 
-      // // parse de fecha/hora
       Timestamp fh = Timestamp.valueOf(fechaHoraStr.replace('T',' ') + ":00");
 
-      // // persistir incidente
       Incidente inc = new Incidente();
       inc.setIdResidente(idResidente);
       inc.setTipo(tipo);
@@ -63,27 +66,34 @@ public class IncidenteServlet extends HttpServlet {
       inc.setDescripcion(descripcion.trim());
       incDAO.create(inc);
 
-      // // RN4: correo a TODOS los guardias activos (best-effort, no bloquea flujo)
+      // RN4: correo a guardias activos
       try {
         List<String> guardias = userDAO.listarCorreosGuardiasActivos();
-        mail.sendNotificacionIncidenteToMany(
-            guardias,
-            nombreResidente,
-            numeroCasa,
-            lote,
-            tipo,
-            fh,
-            descripcion.trim()
-        );
-      } catch (Exception ignore) {
-        // // no bloquear si falla correo
-      }
+        if (!guardias.isEmpty()) {
+          for (String to : guardias) {
+            mail.sendNotificacionIncidente(
+                to,
+                nombreResidente,
+                numeroCasa,   // viene de BD; no se pierde
+                lote,         // viene de BD; no se pierde
+                tipo,
+                fh,
+                descripcion.trim()
+            );
+          }
+        }
+      } catch (Exception ignore) { }
 
-      // // mensaje de éxito y volver a comunicación
       s.setAttribute("msgExito","Se ha creado el incidente con éxito.");
       resp.sendRedirect(req.getContextPath() + "/comunicacion");
     } catch (Exception e) {
       throw new ServletException(e);
     }
+  }
+
+  private static String trimOrNull(String v) {
+    if (v == null) return null;
+    v = v.trim();
+    return v.isEmpty() ? null : v;
   }
 }

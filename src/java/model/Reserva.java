@@ -6,16 +6,13 @@ import java.time.LocalTime;
 public class Reserva {
     private int id;
     private int areaId;
-    private String areaNombre; // para mostrar en la tabla
+    private String areaNombre; // solo para mostrar en la lista
     private int usuarioId;
     private LocalDate fecha;
     private LocalTime horaInicio;
     private LocalTime horaFin;
     private String estado; // 'CREADA' | 'CANCELADA'
 
-    public Reserva() {}
-
-    // Getters/Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

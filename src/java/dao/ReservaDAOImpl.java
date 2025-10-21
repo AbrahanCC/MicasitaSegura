@@ -3,22 +3,26 @@ package dao;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import model.Reserva;
 import util.DBConnection;
 
 public class ReservaDAOImpl implements ReservaDAO {
 
     private static final String BASE_SELECT =
-        "SELECT r.id, r.area_id, a.nombre AS area_nombre, r.usuario_id, r.fecha, r.hora_inicio, r.hora_fin, r.estado " +
+        "SELECT r.id, r.area_id, a.nombre AS area_nombre, r.usuario_id, r.fecha, " +
+        "r.hora_inicio, r.hora_fin, r.estado " +
         "FROM reserva r JOIN area_comun a ON a.id = r.area_id ";
 
+    // 👉 YA NO FILTRA POR ESTADO. Trae TODAS (CREADA y CANCELADA)
     private static final String SQL_LISTAR_USUARIO =
-        BASE_SELECT + "WHERE r.usuario_id = ? AND r.estado = 'CREADA' ORDER BY r.fecha DESC, r.hora_inicio DESC";
+        BASE_SELECT + "WHERE r.usuario_id = ? " +
+        "ORDER BY r.fecha DESC, r.hora_inicio DESC";
 
+    // Para validar disponibilidad, solo consideramos reservas activas (CREADAS)
     private static final String SQL_SOLAPE =
-        "SELECT COUNT(*) " +
-        "FROM reserva r " +
+        "SELECT COUNT(*) FROM reserva r " +
         "WHERE r.area_id = ? AND r.fecha = ? AND r.estado = 'CREADA' " +
         "AND ? < r.hora_fin AND ? > r.hora_inicio";
 
@@ -26,6 +30,7 @@ public class ReservaDAOImpl implements ReservaDAO {
         "INSERT INTO reserva (area_id, usuario_id, fecha, hora_inicio, hora_fin, estado) " +
         "VALUES (?, ?, ?, ?, ?, 'CREADA')";
 
+    // Cancelación lógica (no borra)
     private static final String SQL_CANCELAR =
         "UPDATE reserva SET estado='CANCELADA' WHERE id=?";
 
@@ -62,12 +67,9 @@ public class ReservaDAOImpl implements ReservaDAO {
             ps.setTime(3, Time.valueOf(ini));
             ps.setTime(4, Time.valueOf(fin));
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+                return rs.next() && rs.getInt(1) > 0;
             }
         }
-        return false;
     }
 
     @Override

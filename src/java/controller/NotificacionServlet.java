@@ -4,7 +4,6 @@ import dao.UsuarioDAO;
 import dao.UsuarioDAOImpl;
 import model.Aviso;
 import service.NotificacionService;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;

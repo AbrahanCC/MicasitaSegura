@@ -1,56 +1,67 @@
 package service;
 
-import dao.UsuarioDAO;
-import dao.UsuarioDAOImpl;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import model.Aviso;
+import util.DBConnection;
 
-import java.util.List;
-
+/**
+ * Inserta correos en notif_outbox y registra evento en notif_log.
+ * Tablas existentes:
+ *   notif_outbox(id, recipient, subject, body_html, correlation_id, status, retry_count, last_error, created_at, sent_at)
+ *   notif_log(id, notif_id, event, detail, created_at)
+ */
 public class NotificacionService {
 
-    private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
-    private final MailService mail = new MailService();
+    private static final String STATUS_PENDING = "pending";
 
-    /** Envía y devuelve CUÁNTOS correos se mandaron realmente. */
-    public int crearYEnviar(Aviso a) {
-        int enviados = 0;
+    private static final String SQL_ENQUEUE =
+        "INSERT INTO notif_outbox (recipient, subject, body_html, correlation_id, status, retry_count, last_error, created_at, sent_at) " +
+        "VALUES (?, ?, ?, NULL, ?, 0, NULL, NOW(), NULL)";
 
-        // arma HTML sencillo con tu mensaje
-        String html = buildHtml(a.getMensaje());
+    private static final String SQL_LOG =
+        "INSERT INTO notif_log (notif_id, event, detail, created_at) VALUES (?, ?, ?, NOW())";
 
-        try {
-            if ("UNO".equalsIgnoreCase(a.getDestinatarioTipo())) {
-                if (a.getDestinatarioEmail() != null && !a.getDestinatarioEmail().trim().isEmpty()) {
-                    mail.sendHtml(a.getDestinatarioEmail().trim(), a.getAsunto(), html);
-                    enviados = 1;
-                }
-            } else { // ALL
-                List<String> correos = usuarioDAO.listarCorreosResidentesActivos();
-                for (String c : correos) {
-                    try {
-                        mail.sendHtml(c, a.getAsunto(), html);
-                        enviados++;
-                    } catch (Exception ex) {
-                        System.err.println("Fallo enviando a " + c + ": " + ex.getMessage());
-                    }
-                }
+    public long enqueueEmail(String to, String subject, String htmlBody) {
+        if (to == null || to.isEmpty()) return 0L;
+        long notifId = 0L;
+        try (Connection cn = DBConnection.getConnection();
+             PreparedStatement ps = cn.prepareStatement(SQL_ENQUEUE, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, to);
+            ps.setString(2, subject);
+            ps.setString(3, htmlBody);
+            ps.setString(4, STATUS_PENDING);
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) notifId = rs.getLong(1);
+            }
+            try (PreparedStatement log = cn.prepareStatement(SQL_LOG)) {
+                log.setLong(1, notifId);
+                log.setString(2, "enqueued");
+                log.setString(3, "Notification enqueued to outbox");
+                log.executeUpdate();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error enviando avisos: " + e.getMessage(), e);
+            System.err.println("[NotificationService] enqueueEmail error: " + e.getMessage());
         }
-
-        return enviados;
+        return notifId;
     }
 
-    private String buildHtml(String mensajePlano) {
-        String safe = (mensajePlano == null) ? "" : mensajePlano
-                .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                .replace("\n", "<br>");
-        return "<div style='font-family:Segoe UI,Arial,sans-serif;font-size:14px'>"
-             + "<p>Estimado(a) residente,</p>"
-             + "<p>" + safe + "</p>"
-             + "<hr style='border:none;border-top:1px solid #eee;margin-top:16px;'>"
-             + "<p style='color:#888'>MiCasitaSegura</p>"
-             + "</div>";
+    public long enqueueReservaCreada(String to, String nombreArea,
+                                     String fecha, String horaIni, String horaFin) {
+        String subject = "Notificación de reserva";
+        // Texto RN4)
+        String body = "Estimado residente, su reserva para el área común " + nombreArea +
+                      " a sido confirmada exitosamente para el día " + fecha +
+                      " en el horario de " + horaIni + " a " + horaFin + ". " +
+                      "Le recordamos revisar las políticas de uso del espacio, respetar los tiempos asignados y notificar con al menos 24 horas de anticipación en caso de cancelación o modificación." +
+                      "¡Gracias por contribuir a un uso ordenado de nuestros recursos comunitarios!";
+        return enqueueEmail(to, subject, body);
+    }
+
+    public int crearYEnviar(Aviso a) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

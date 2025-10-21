@@ -76,9 +76,12 @@ public class LoginServlet extends HttpServlet {
         HttpSession s = req.getSession(true);
         s.setAttribute("uid", u.getId());
         s.setAttribute("uname", u.getNombre());
-        s.setAttribute("rol", u.getRolId());     // 1=ADMIN, 2=GUARDIA, 3=RESIDENTE
-        s.setAttribute("casa", u.getNumeroCasa()); // guardar casa en sesión
-        s.setAttribute("lote", u.getLote());       // guardar lote en sesión
+        s.setAttribute("rol", u.getRolId());          // 1=ADMIN, 2=GUARDIA, 3=RESIDENTE
+        s.setAttribute("casa", u.getNumeroCasa());    // si lo usas en otras vistas
+        s.setAttribute("lote", u.getLote());          // si lo usas en otras vistas
+
+        // guardar el objeto completo para RN2 (Persona que reserva)
+        s.setAttribute("usuario", u);
 
         String ctx = req.getContextPath();
         switch (u.getRolId()) {
