@@ -1,43 +1,50 @@
 package service;
 
+import dao.ConversacionDAO;
 import dao.ConversacionDAOImpl;
 import dao.MensajeDAO;
 import dao.MensajeDAOImpl;
-import model.Conversacion;
 import model.Mensaje;
 
 import java.util.List;
 
 public class MensajeService {
+    // // DAOs y servicio de correo centralizado
     private final MensajeDAO mensajeDAO = new MensajeDAOImpl();
-    private final ConversacionDAOImpl conversacionDAO = new ConversacionDAOImpl();
+    private final ConversacionDAO conversacionDAO = new ConversacionDAOImpl();
     private final MailService mail = new MailService();
 
-    public Mensaje enviarMensaje(int idConversacion, int idEmisor, String contenido, String nombreEmisor, String correoDestinatario) {
-        if (contenido == null || contenido.trim().isEmpty() || contenido.length() > 200) {
+    // // Envía y persiste un mensaje; opcionalmente manda correo (RN6)
+    public Mensaje enviarMensaje(int idConversacion, int idEmisor, String contenido,
+                                 String nombreEmisor, String correoDestinatario, String chatUrl) {
+        // // Validación: mensaje 1..200 caracteres
+        if (contenido == null || contenido.trim().isEmpty() || contenido.trim().length() > 200) {
             throw new RuntimeException("El mensaje debe tener entre 1 y 200 caracteres");
         }
+
+        // // Persistencia
         Mensaje m = new Mensaje(idConversacion, idEmisor, contenido.trim());
         m = mensajeDAO.create(m);
 
-        // Actualiza fecha_ultimo_mensaje
+        // // Actualiza último movimiento de la conversación
         conversacionDAO.updateFechaUltimoMensaje(idConversacion);
 
-        // RN6: correo al destinatario (si hay correo)
+        // // Notificación e-mail (best-effort, no bloquea)
         if (correoDestinatario != null && !correoDestinatario.isEmpty()) {
-            String subject = "Notificación de mensaje";
-            String body = "El usuario <b>" + nombreEmisor + "</b> le ha enviado un mensaje.<br>"
-                        + "Favor ingresar al apartado de <b>Consulta General</b> para revisar su conversación.";
-            mail.sendHtml(correoDestinatario, subject, body);
+            String nombre = (nombreEmisor == null || nombreEmisor.isEmpty()) ? "Usuario" : nombreEmisor;
+            mail.sendNotificacionMensaje(correoDestinatario, nombre, chatUrl);
         }
+
         return m;
     }
 
+    // // Lista mensajes con paginado simple
     public List<Mensaje> listarMensajes(int idConversacion, int limit, int offset) {
         return mensajeDAO.findByConversacion(idConversacion, limit, offset);
     }
 
-    public int obtenerDestinatario(Conversacion c, int idEmisor) {
-        return (idEmisor == c.getIdResidente()) ? c.getIdGuardia() : c.getIdResidente();
+    // // Marca como leídos los mensajes de "el otro" usuario
+    public void marcarLeidos(int idConversacion, int userId){
+        mensajeDAO.marcarLeidos(idConversacion, userId);
     }
 }

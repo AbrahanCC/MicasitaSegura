@@ -47,4 +47,17 @@ public class MensajeDAOImpl implements MensajeDAO {
         } catch (Exception e) { throw new RuntimeException(e); }
         return list;
     }
+
+    @Override
+    public void marcarLeidos(int idConversacion, int userId) {
+        // Marca como leídos los mensajes de la conversación enviados por "el otro"
+        String sql = "UPDATE mensajes SET leido=1 " +
+                     "WHERE id_conversacion=? AND id_emisor<>? AND leido=0";
+        try (Connection cn = DBConnection.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setInt(1, idConversacion);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (Exception e) { throw new RuntimeException(e); }
+    }
 }

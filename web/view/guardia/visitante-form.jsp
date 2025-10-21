@@ -1,10 +1,13 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%
   String ctx = request.getContextPath();
   String nombreResidente = (String) session.getAttribute("nombreUsuario"); // RN2
-  java.util.List<String> lotes = (java.util.List<String>) request.getAttribute("lotes");
-  java.util.List<String> casas = (java.util.List<String>) request.getAttribute("casas");
+  // Catálogos como List<String> de códigos
+  java.util.List<String> lotes = (java.util.List<String>) request.getAttribute("lotes");   // A..Z
+  java.util.List<String> casas = (java.util.List<String>) request.getAttribute("casas");   // 001..050
+  java.util.List<String> tiposVisita = (java.util.List<String>) request.getAttribute("tiposVisita"); // ['visita','por_intentos']
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -52,15 +55,22 @@
         <input class="form-control" name="dpi" pattern="[0-9]{4,25}" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
       </div>
 
-      <!-- Tipo de visita -->
-      <div class="col-md-6">
-        <label class="form-label">Tipo de visita</label>
-        <select class="form-select" name="visitType" id="visitType" required>
-          <option value="">Seleccione…</option>
-          <option value="visita">Visita</option>
-          <option value="por_intentos">Por intentos</option>
-        </select>
-      </div>
+        <!-- Tipo de visita (desde catálogo VISITA) -->
+        <div class="col-md-6">
+          <label class="form-label">Tipo de visita</label>
+          <select class="form-select" name="visitType" id="visitType" required>
+            <option value="">Seleccione…</option>
+            <%
+              if (tiposVisita != null) {
+                for (String v : tiposVisita) {
+            %>
+                  <option value="<%=v%>"><%=v%></option>
+            <%
+                }
+              }
+            %>
+          </select>
+        </div>
 
       <!-- Campo condicional: fecha -->
       <div class="col-md-6 d-none" id="fechaVisitaField">
@@ -74,9 +84,9 @@
         <input class="form-control" type="number" name="usosMax" id="usosMax" min="2">
       </div>
 
-      <!-- Residente (solo lectura) -->
+      <!-- Residente -->
       <div class="col-md-6">
-        <label class="form-label">Residente que registra</label>
+        <label class="form-label">Residente que visita</label>
         <input class="form-control" readonly value="${nombreResidente}">
       </div>
 
@@ -86,7 +96,7 @@
         <select class="form-select" name="lote" id="lote" required>
           <option value="">Seleccione…</option>
           <% if (lotes != null) for (String l : lotes) { %>
-            <option value="<%=l%>"><%=l%></option>
+            <option value="<%=l%>">Lote <%=l%></option>
           <% } %>
         </select>
       </div>
@@ -96,8 +106,11 @@
         <label class="form-label">Número de casa</label>
         <select class="form-select" name="numeroCasa" id="numeroCasa" required>
           <option value="">Seleccione…</option>
-          <% if (casas != null) for (String c : casas) { %>
-            <option value="<%=c%>"><%=c%></option>
+          <% if (casas != null) for (String c : casas) { 
+               int n = 0; 
+               try { n = Integer.parseInt(c); } catch(Exception ignore) {}
+          %>
+            <option value="<%=c%>">Casa <%= (n > 0 ? n : c) %></option>
           <% } %>
         </select>
       </div>
@@ -110,13 +123,21 @@
 
       <!-- Botones -->
       <div class="col-12 d-flex gap-2 mt-3">
-        <button class="btn btn-brand" type="submit" id="btnRegistrar" disabled><i class="bi bi-save me-1"></i>Registrar visita</button>
-        <a class="btn btn-outline-secondary" href="<%=ctx%>/visitantes"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+        <button class="btn btn-brand" type="submit" id="btnRegistrar" disabled>
+          <i class="bi bi-save me-1"></i>Registrar visita
+        </button>
+        <a class="btn btn-outline-secondary" href="<%=ctx%>/visitantes">
+          <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
       </div>
 
       <div class="col-12 d-flex gap-2 mt-2">
-        <button class="btn btn-outline-primary" type="button" id="btnQR" disabled><i class="bi bi-qr-code me-1"></i>Descargar QR</button>
-        <button class="btn btn-outline-danger" type="button" id="btnCancelar" disabled><i class="bi bi-x-circle me-1"></i>Cancelar visita</button>
+        <button class="btn btn-outline-primary" type="button" id="btnQR" disabled>
+          <i class="bi bi-qr-code me-1"></i>Descargar QR
+        </button>
+        <button class="btn btn-outline-danger" type="button" id="btnCancelar" disabled>
+          <i class="bi bi-x-circle me-1"></i>Cancelar visita
+        </button>
       </div>
     </form>
   </div>
@@ -129,19 +150,21 @@
   const intentosF = document.getElementById('intentosField');
   const btnRegistrar = document.getElementById('btnRegistrar');
 
-  tipo.addEventListener('change', function() {
+  function toggleExtras() {
+    const v = (tipo.value || '').trim();
     fechaF.classList.add('d-none');
     intentosF.classList.add('d-none');
-
-    if (this.value === 'visita') fechaF.classList.remove('d-none');
-    if (this.value === 'por_intentos') intentosF.classList.remove('d-none');
-  });
+    if (v === 'visita') fechaF.classList.remove('d-none');
+    if (v === 'por_intentos') intentosF.classList.remove('d-none');
+  }
+  tipo.addEventListener('change', toggleExtras);
+  toggleExtras();
 
   // Habilitar registrar solo si campos obligatorios están llenos
   const form = document.getElementById('frmVisitante');
   form.addEventListener('input', () => {
     const nombre = form.nombre.value.trim();
-    const tipoVal = tipo.value.trim();
+    const tipoVal = (tipo.value || '').trim();
     btnRegistrar.disabled = !(nombre && tipoVal);
   });
 </script>

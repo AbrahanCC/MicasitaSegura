@@ -27,14 +27,16 @@ public class VisitanteController extends HttpServlet {
 
         switch (op) {
             case "new":
-                // Agregar nombre del residente logueado a la vista
                 HttpSession s = req.getSession(false);
                 String residenteNombre = (s != null)
                         ? (String) s.getAttribute("nombreUsuario")
                         : "Residente activo";
                 req.setAttribute("nombreResidente", residenteNombre);
+                dao.UsuarioDAO udao = new dao.UsuarioDAOImpl();
+                req.setAttribute("lotes", udao.catalogoLotes());
+                req.setAttribute("casas", udao.catalogoCasas());
+                req.setAttribute("tiposVisita", udao.catalogoVisita()); // código + nombre
 
-                // Redirigir al formulario
                 req.getRequestDispatcher("/view/guardia/visitante-form.jsp").forward(req, resp);
                 return;
 

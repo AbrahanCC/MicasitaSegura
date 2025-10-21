@@ -2,8 +2,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
   String ctx = request.getContextPath();
-  java.util.List<String> casas = (java.util.List<String>) request.getAttribute("casas");
-  java.util.List<String> lotes = (java.util.List<String>) request.getAttribute("lotes");
+  // Catálogos como List<String>
+  java.util.List<String> lotes = (java.util.List<String>) request.getAttribute("lotes");   // A..Z
+  java.util.List<String> casas = (java.util.List<String>) request.getAttribute("casas");   // 001..050
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -75,22 +76,27 @@
           </select>
         </div>
 
-        <div class="col-md-3">
+        <!-- Lote -->
+        <div class="col-sm-3">
           <label class="form-label">Lote</label>
-          <select class="form-select" name="lote" id="lote">
+          <select class="form-select" name="lote" id="lote" required>
             <option value="">Seleccione…</option>
             <% if (lotes != null) for (String l : lotes) { %>
-              <option value="<%=l%>" <%= (request.getAttribute("u") != null && l.equals(((model.Usuario)request.getAttribute("u")).getLote())) ? "selected" : "" %>><%=l%></option>
+              <option value="<%=l%>">Lote <%=l%></option>
             <% } %>
           </select>
         </div>
 
-        <div class="col-md-3">
+        <!-- Número de casa -->
+        <div class="col-sm-3">
           <label class="form-label">Número de casa</label>
-          <select class="form-select" name="numeroCasa" id="numeroCasa">
+          <select class="form-select" name="numeroCasa" id="numeroCasa" required>
             <option value="">Seleccione…</option>
-            <% if (casas != null) for (String c : casas) { %>
-              <option value="<%=c%>" <%= (request.getAttribute("u") != null && c.equals(((model.Usuario)request.getAttribute("u")).getNumeroCasa())) ? "selected" : "" %>><%=c%></option>
+            <% if (casas != null) for (String c : casas) { 
+                 int n = 0; 
+                 try { n = Integer.parseInt(c); } catch(Exception ignore) {}
+            %>
+              <option value="<%=c%>">Casa <%= (n > 0 ? n : c) %></option>
             <% } %>
           </select>
         </div>

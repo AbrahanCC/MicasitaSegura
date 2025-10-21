@@ -17,12 +17,22 @@ public interface UsuarioDAO {
     Usuario buscarPorIdentificador(String ident);
     void actualizarPassword(int id, String nuevoHash);
 
-    //Búsqueda en directorio residencial (RN1)
+    // Búsqueda en directorio residencial (RN1)
     List<Usuario> buscarDirectorio(String nombres, String apellidos, String lote, String numeroCasa);
 
     // Catálogo de correos (residentes activos)
     List<String> listarCorreosResidentesActivos();
 
-    // Obtener el ID del residente destino por casa y lote
+    // Correos de guardias activos
+    List<String> listarCorreosGuardiasActivos();
+
+    // Obtener ID del residente destino por casa y lote
     Integer findResidenteId(String numeroCasa, String lote);
+
+    // Catálogos
+    List<String> catalogoLotes();
+    List<String> catalogoCasas();
+    List<String> catalogoVisita();
+
+    String obtenerCorreoPorId(int idUsuario);
 }

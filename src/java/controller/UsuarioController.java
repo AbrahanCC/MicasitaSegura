@@ -12,27 +12,12 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.IOException;
-import java.util.*;
 
 // CRUD de usuarios (lista/nuevo/editar/eliminar)
 @WebServlet("/usuarios")
 public class UsuarioController extends HttpServlet {
     private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
     private final RolDAO rolDAO = new RolDAOImpl();
-
-    // Catálogo: casas 1..50
-    private List<String> catalogoCasas() {
-        List<String> casas = new ArrayList<>();
-        for (int i = 1; i <= 50; i++) casas.add(String.valueOf(i));
-        return casas;
-    }
-
-    // Catálogo: lotes A..Z
-    private List<String> catalogoLotes() {
-        List<String> lotes = new ArrayList<>();
-        for (char c = 'A'; c <= 'Z'; c++) lotes.add(String.valueOf(c));
-        return lotes;
-    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -44,8 +29,8 @@ public class UsuarioController extends HttpServlet {
             case "new":
                 req.setAttribute("roles", rolDAO.listar());
                 req.setAttribute("u", new Usuario());
-                req.setAttribute("casas", catalogoCasas());
-                req.setAttribute("lotes", catalogoLotes());
+                req.setAttribute("casas", usuarioDAO.catalogoCasas());
+                req.setAttribute("lotes", usuarioDAO.catalogoLotes());
                 req.getRequestDispatcher("/view/usuario-form.jsp").forward(req, resp);
                 break;
 
@@ -54,8 +39,8 @@ public class UsuarioController extends HttpServlet {
                 int id = Integer.parseInt(req.getParameter("id"));
                 req.setAttribute("u", usuarioDAO.obtener(id));
                 req.setAttribute("roles", rolDAO.listar());
-                req.setAttribute("casas", catalogoCasas());
-                req.setAttribute("lotes", catalogoLotes());
+                req.setAttribute("casas", usuarioDAO.catalogoCasas());
+                req.setAttribute("lotes", usuarioDAO.catalogoLotes());
                 req.getRequestDispatcher("/view/usuario-form.jsp").forward(req, resp);
                 break;
                 
@@ -131,8 +116,8 @@ public class UsuarioController extends HttpServlet {
 
             req.setAttribute("u", tmp);
             req.setAttribute("roles", rolDAO.listar());
-            req.setAttribute("casas", catalogoCasas());
-            req.setAttribute("lotes", catalogoLotes());
+            req.setAttribute("casas", usuarioDAO.catalogoCasas());
+            req.setAttribute("lotes", usuarioDAO.catalogoLotes());
             req.getRequestDispatcher("/view/usuario-form.jsp").forward(req, resp);
             return;
         }
@@ -168,8 +153,8 @@ public class UsuarioController extends HttpServlet {
                     req.setAttribute("error", "La contraseña es obligatoria para crear un usuario.");
                     req.setAttribute("u", u);
                     req.setAttribute("roles", rolDAO.listar());
-                    req.setAttribute("casas", catalogoCasas());
-                    req.setAttribute("lotes", catalogoLotes());
+                    req.setAttribute("casas", usuarioDAO.catalogoCasas());
+                    req.setAttribute("lotes", usuarioDAO.catalogoLotes());
                     req.getRequestDispatcher("/view/usuario-form.jsp").forward(req, resp);
                     return;
                 }
@@ -189,8 +174,8 @@ public class UsuarioController extends HttpServlet {
                 req.setAttribute("error", dup);
                 req.setAttribute("u", u);
                 req.setAttribute("roles", rolDAO.listar());
-                req.setAttribute("casas", catalogoCasas());
-                req.setAttribute("lotes", catalogoLotes());
+                req.setAttribute("casas", usuarioDAO.catalogoCasas());
+                req.setAttribute("lotes", usuarioDAO.catalogoLotes());
                 req.getRequestDispatcher("/view/usuario-form.jsp").forward(req, resp);
             } else {
                 throw new ServletException(ex);

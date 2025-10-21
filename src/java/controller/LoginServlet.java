@@ -55,18 +55,7 @@ public class LoginServlet extends HttpServlet {
                 req.getParameter("clave"), req.getParameter("contrasena")
         );
 
-        // DEBUG opcional (no imprimir password en producción)
-        System.out.println("DEBUG LOGIN ----");
-        System.out.println("ident=" + ident);
-
         Usuario u = (ident == null) ? null : usuarioDAO.buscarPorIdentificador(ident);
-        System.out.println("u!=null=" + (u != null));
-        if (u != null) {
-            System.out.println("user=" + u.getUsername() + " activo=" + u.isActivo());
-            System.out.println("hash=" + u.getPassHash());
-        }
-        System.out.println("---------------");
-
         boolean ok = (u != null && u.isActivo() && u.getPassHash() != null
                 && PasswordUtil.verify(password, u.getPassHash()));
 
@@ -87,7 +76,9 @@ public class LoginServlet extends HttpServlet {
         HttpSession s = req.getSession(true);
         s.setAttribute("uid", u.getId());
         s.setAttribute("uname", u.getNombre());
-        s.setAttribute("rol", u.getRolId());  // 1=ADMIN, 2=GUARDIA, 3=RESIDENTE
+        s.setAttribute("rol", u.getRolId());     // 1=ADMIN, 2=GUARDIA, 3=RESIDENTE
+        s.setAttribute("casa", u.getNumeroCasa()); // guardar casa en sesión
+        s.setAttribute("lote", u.getLote());       // guardar lote en sesión
 
         String ctx = req.getContextPath();
         switch (u.getRolId()) {

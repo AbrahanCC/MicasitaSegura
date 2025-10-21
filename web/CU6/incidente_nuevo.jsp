@@ -1,9 +1,18 @@
-<%-- 
-    Document   : incidente_nuevo
-    Created on : 2/10/2025, 11:15:07 AM
-    Author     : abrah
---%>
 <%@page contentType="text/html;charset=UTF-8"%>
+<%
+  HttpSession s = request.getSession(false);
+  Integer rol = (s == null) ? null : (Integer) s.getAttribute("rol");
+  if (rol == null) { response.sendRedirect(request.getContextPath() + "/login"); return; }
+  if (rol != 1 && rol != 2 && rol != 3) { response.sendError(403); return; }
+
+  String ctx = request.getContextPath();
+  String panelUrl = ctx + "/index.jsp";
+  if (rol == 1) panelUrl = ctx + "/view/admin/dashboard.jsp";
+  else if (rol == 2) panelUrl = ctx + "/view/guardia/control.jsp";
+  else if (rol == 3) panelUrl = ctx + "/view/residente/qr.jsp";
+
+  String error = (String) request.getAttribute("error");
+%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,11 +23,16 @@
 </head>
 <body>
 <div class="container py-4">
-  <h4 class="mb-3">Reportar incidente</h4>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Reportar incidente</h4>
+    <div class="btn-group">
+      <a href="<%=ctx%>/comunicacion" class="btn btn-outline-secondary btn-sm">Volver</a>
+      <a href="<%=panelUrl%>" class="btn btn-outline-primary btn-sm">Panel principal</a>
+    </div>
+  </div>
 
-  <% String error = (String) request.getAttribute("error");
-     if (error != null) { %>
-     <div class="alert alert-warning"><%= error %></div>
+  <% if (error != null) { %>
+    <div class="alert alert-warning"><%= error %></div>
   <% } %>
 
   <form method="post" id="formInc">
@@ -44,7 +58,7 @@
 
     <div class="d-flex gap-2">
       <button id="btnGuardar" class="btn btn-danger" type="submit" disabled>Guardar</button>
-      <a href="${pageContext.request.contextPath}/comunicacion" class="btn btn-secondary">Regresar</a>
+      <a href="<%=ctx%>/comunicacion" class="btn btn-secondary">Regresar</a>
     </div>
   </form>
 </div>

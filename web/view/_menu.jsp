@@ -16,7 +16,6 @@
         <%-- Admin --%>
         <% if (_mrol != null && _mrol == 1) { %>
           <li class="nav-item">
-            <!-- Acceso a opción "Directorio Residencial" -->
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
               <i class="bi bi-people me-1"></i>Directorio
             </a>
@@ -40,16 +39,15 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/comunicacion">
-              <i class="bi bi-chat-dots me-1"></i>Comunicación Interna
-            </a>
+              <a class="nav-link" href="${pageContext.request.contextPath}/CU6/chat.jsp">
+                  <i class="bi bi-chat-text me-1"></i>Chat general
+              </a>
           </li>
         <% } %>
 
         <%-- Guardia --%>
         <% if (_mrol != null && _mrol == 2) { %>
           <li class="nav-item">
-            <!-- Acceso a opción "Directorio Residencial" (para Guardia) -->
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
               <i class="bi bi-people me-1"></i>Directorio
             </a>
@@ -71,7 +69,7 @@
           </li>
           <li class="nav-item">
               <a class="nav-link" href="${pageContext.request.contextPath}/CU6/chat.jsp">
-                  <i class="bi bi-chat-dots me-1"></i>Chat general
+                  <i class="bi bi-chat-text me-1"></i>Chat general
               </a>
           </li>
         <% } %>
@@ -84,7 +82,6 @@
             </a>
           </li>
           <li class="nav-item">
-            <!-- CU21-3.3.1: Acceso a opción "Directorio Residencial" (para Residente) -->
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
               <i class="bi bi-people me-1"></i>Directorio
             </a>
@@ -94,6 +91,16 @@
               <i class="bi bi-person-plus me-1"></i>Registrar visitante
             </a>
           </li>
+          <li class="nav-item">
+              <a class="nav-link" href="${pageContext.request.contextPath}/chat/nuevo">
+                <i class="bi bi-chat-text me-1"></i>Chat general
+              </a>
+          </li> 
+            <li class="nav-item">
+                <a class="nav-link" href="${pageContext.request.contextPath}/residente/reservas">
+                    <i class="bi bi-chat-text me-1"></i>Reservas
+                </a>
+            </li>
         <% } %>
       </ul>
 
