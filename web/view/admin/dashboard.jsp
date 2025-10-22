@@ -38,10 +38,6 @@
       <a class="btn btn-brand btn-lg" href="${pageContext.request.contextPath}/usuarios">
         <i class="bi bi-person-lines-fill me-2"></i>Mantenimiento de Usuarios
       </a>
-      <a class="btn btn-outline-brand btn-lg" href="${pageContext.request.contextPath}/directorio">
-        <i class="bi bi-people me-2"></i>Directorio
-      </a>
-    </div>
 
     <hr class="my-4">
 

@@ -15,12 +15,7 @@
 
         <%-- Admin: solo Directorio --%>
         <% if (_mrol != null && _mrol == 1) { %>
-          <!-- admin solo directorio -->
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
-              <i class="bi bi-people me-1"></i>Directorio
-            </a>
-          </li>
+          <!-- admin solo Mantenimiento de usuario -->
         <% } %>
 
         <%-- Guardia --%>
