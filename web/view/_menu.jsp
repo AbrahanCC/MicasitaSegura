@@ -101,6 +101,11 @@
                     <i class="bi bi-chat-text me-1"></i>Reservas
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="${pageContext.request.contextPath}/residente/pagos">
+                    <i class="bi bi-credit-card me-1"></i>Gestionar pagos
+                </a>
+            </li>
         <% } %>
       </ul>
 

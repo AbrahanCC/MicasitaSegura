@@ -62,7 +62,7 @@
 
           <!-- RN1: Salón para reservar -->
           <div class="col-12">
-            <label class="form-label">Salón para reservar *</label>
+            <label class="form-label">Area para reservar</label>
             <select name="area_id" class="form-select" required <%= hayAreas ? "" : "disabled" %>>
               <option value="">-- Seleccionar --</option>
               <% for (AreaComun a : areas) { %>
