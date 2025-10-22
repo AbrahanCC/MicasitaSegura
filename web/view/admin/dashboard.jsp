@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%
-  // --- Solo ADMIN (rol=1); si no, va a login ---
+  // solo ADMIN (1); si no, login
   String ctx = request.getContextPath();
   HttpSession s = request.getSession(false);
   Integer rol   = (s == null) ? null : (Integer) s.getAttribute("rol");
@@ -18,7 +18,6 @@
 </head>
 <body>
 
-<!-- Menú común -->
 <jsp:include page="/view/_menu.jsp" />
 
 <div class="container py-4 d-flex justify-content-center" style="min-height:100vh;">
@@ -35,8 +34,12 @@
     </div>
 
     <div class="d-grid gap-3">
+      <!-- admin: dos accesos en dashboard -->
       <a class="btn btn-brand btn-lg" href="${pageContext.request.contextPath}/usuarios">
-        <i class="bi bi-people me-2"></i>Mantenimiento de Usuarios
+        <i class="bi bi-person-lines-fill me-2"></i>Mantenimiento de Usuarios
+      </a>
+      <a class="btn btn-outline-brand btn-lg" href="${pageContext.request.contextPath}/directorio">
+        <i class="bi bi-people me-2"></i>Directorio
       </a>
     </div>
 

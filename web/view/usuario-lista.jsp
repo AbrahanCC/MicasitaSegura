@@ -27,15 +27,21 @@
         <small class="text-muted">Listado general del sistema</small>
       </div>
       <div class="ms-auto">
+        <!-- FA1 paso 1: Crear Usuario -->
         <a class="btn btn-brand" href="<%=ctx%>/usuarios?op=new">
           <i class="bi bi-person-plus me-1"></i>Crear usuario
         </a>
       </div>
     </div>
 
+    <!-- Mensajes del servidor -->
     <c:if test="${not empty sessionScope.flashOk}">
       <div class="alert alert-success">${sessionScope.flashOk}</div>
       <c:remove var="flashOk" scope="session" />
+    </c:if>
+    <c:if test="${not empty sessionScope.flashErr}">
+      <div class="alert alert-danger">${sessionScope.flashErr}</div>
+      <c:remove var="flashErr" scope="session" />
     </c:if>
 
     <div class="table-responsive">
@@ -43,8 +49,8 @@
         <thead class="table-light">
           <tr>
             <th>DPI Usuario</th>
-            <th>Nombre del Usuario</th>
-            <th>Apellidos del Usuario</th>
+            <th>Nombre</th>
+            <th>Apellidos</th>
             <th>Correo</th>
             <th>Número de casa</th>
             <th>Rol</th>
@@ -65,15 +71,20 @@
             <td><%= u.getNombre() %></td>
             <td><%= u.getApellidos() %></td>
             <td><%= u.getCorreo() %></td>
-            <td><%= u.getNumeroCasa() != null ? u.getNumeroCasa() : "-" %></td>
+            <td>
+              <span class="badge text-bg-secondary">
+                <%= (u.getLote() != null ? u.getLote()+"-" : "") %><%= (u.getNumeroCasa() != null ? u.getNumeroCasa() : "-") %>
+              </span>
+            </td>
             <td><%= (u.getRolNombre() != null && !u.getRolNombre().isEmpty()) ? u.getRolNombre() : "-" %></td>
             <td class="text-center">
               <a href="<%=ctx%>/usuarios?op=edit&id=<%=u.getId()%>" class="btn btn-sm btn-outline-primary me-1" title="Editar">
                 <i class="bi bi-pencil-square"></i>
               </a>
+              <!-- FA2: confirmar eliminar -->
               <a href="<%=ctx%>/usuarios?op=del&id=<%=u.getId()%>"
                  class="btn btn-sm btn-outline-danger"
-                 onclick="return confirm('¿Desea eliminar al usuario <%=u.getNombre()%>?')">
+                 onclick="return confirm('¿Está seguro de eliminar el usuario <%=u.getNombre()%>?')">
                 <i class="bi bi-trash"></i>
               </a>
             </td>
