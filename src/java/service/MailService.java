@@ -124,37 +124,72 @@ public class MailService {
     sendHtml(to, subject, body);
   }
 
-        // Notificación de INCIDENTE a los guardias activos (cumple RN4)
-        public void sendNotificacionIncidente(String to, String nombreResidente,
-                                              String numeroCasa, String lote,
-                                              String tipo, java.sql.Timestamp fechaHora,
-                                              String descripcion) {
-          if (to == null || to.trim().isEmpty()) return;
+  // // Notificación de INCIDENTE a los guardias activos (RN4)
+  public void sendNotificacionIncidente(String to, String nombreResidente,
+                                        String numeroCasa, String lote,
+                                        String tipo, java.sql.Timestamp fechaHora,
+                                        String descripcion) {
+    if (to == null || to.trim().isEmpty()) return;
 
-          String subject = "Reporte de incidente";
+    String subject = "Reporte de incidente";
 
-          // --- Se exige incluir casa y lote ---
-          String casaTxt = (numeroCasa != null && !numeroCasa.trim().isEmpty()) ? numeroCasa.trim() : "sin número";
-          String loteTxt = (lote != null && !lote.trim().isEmpty()) ? lote.trim() : "sin lote";
+    String casaTxt = (numeroCasa != null && !numeroCasa.trim().isEmpty()) ? numeroCasa.trim() : "sin número";
+    String loteTxt = (lote != null && !lote.trim().isEmpty()) ? lote.trim() : "sin lote";
 
-          String body =
-              "Se le informa que el residente <b>" + safe(nombreResidente == null ? "Residente" : nombreResidente) + "</b>, "
-              + "que vive en la casa <b>" + safe(casaTxt) + "</b> del lote <b>" + safe(loteTxt) + "</b>, "
-              + "ha reportado un incidente. A continuación, el detalle:<br><br>"
-              + "<b>Tipo:</b> " + safe(tipo) + "<br>"
-              + "<b>Fecha y hora:</b> " + safe(String.valueOf(fechaHora)) + "<br>"
-              + "<b>Descripción:</b> " + safe(descripcion) + "<br><br>"
-              + "Por favor, tomar las acciones correspondientes.";
+    String body =
+        "Se le informa que el residente <b>" + safe(nombreResidente == null ? "Residente" : nombreResidente) + "</b>, "
+        + "que vive en la casa <b>" + safe(casaTxt) + "</b> del lote <b>" + safe(loteTxt) + "</b>, "
+        + "ha reportado un incidente. A continuación, el detalle:<br><br>"
+        + "<b>Tipo:</b> " + safe(tipo) + "<br>"
+        + "<b>Fecha y hora:</b> " + safe(String.valueOf(fechaHora)) + "<br>"
+        + "<b>Descripción:</b> " + safe(descripcion) + "<br><br>"
+        + "Por favor, tomar las acciones correspondientes.";
 
-          sendHtml(to, subject, body);
-        }
+    sendHtml(to, subject, body);
+  }
 
-  // // Versión masiva de la notificación de INCIDENTE (lista de correos)
+  // // Versión masiva de la notificación de INCIDENTE
   public void sendNotificacionIncidenteToMany(List<String> correos, String nombreResidente, String numeroCasa, String lote,
                                               String tipo, java.sql.Timestamp fechaHora, String descripcion) {
     if (correos == null || correos.isEmpty()) return;
     for (String to : correos) {
       sendNotificacionIncidente(to, nombreResidente, numeroCasa, lote, tipo, fechaHora, descripcion);
+    }
+  }
+
+  // // NUEVO: Notificación de REPORTE DE MANTENIMIENTO (RN3)
+  public void sendNotificacionMantenimiento(String to, String nombreResidente,
+                                            String numeroCasa, String lote,
+                                            String tipo, java.sql.Timestamp fechaHora,
+                                            String descripcion) {
+    if (to == null || to.trim().isEmpty()) return;
+
+    String subject = "Reporte de mantenimiento";
+
+    String casaTxt = (numeroCasa != null && !numeroCasa.trim().isEmpty()) ? numeroCasa.trim() : "sin número";
+    String loteTxt = (lote != null && !lote.trim().isEmpty()) ? lote.trim() : "sin lote";
+
+    String body =
+        "El residente <b>" + safe(nombreResidente == null ? "Residente" : nombreResidente) + "</b>, "
+        + "de la casa <b>" + safe(casaTxt) + "</b> (lote <b>" + safe(loteTxt) + "</b>), "
+        + "ha ingresado un reporte de mantenimiento con el siguiente detalle:<br><br>"
+        + "<b>Tipo de inconveniente:</b> " + safe(tipo) + "<br>"
+        + "<b>Fecha y hora:</b> " + safe(String.valueOf(fechaHora)) + "<br>"
+        + "<b>Descripción:</b> " + safe(descripcion) + "<br><br>"
+        + "Por favor, tomar las acciones correspondientes.<br><br>"
+        + "<b>MiCasitaSegura</b>";
+
+    sendHtml(to, subject, body);
+  }
+
+  // // Versión masiva de la notificación de MANTENIMIENTO
+  public void sendNotificacionMantenimientoToMany(List<String> correos, String nombreResidente,
+                                                  String numeroCasa, String lote,
+                                                  String tipo, java.sql.Timestamp fechaHora,
+                                                  String descripcion) {
+    if (correos == null || correos.isEmpty()) return;
+    for (String to : correos) {
+      sendNotificacionMantenimiento(to, nombreResidente, numeroCasa, lote, tipo, fechaHora, descripcion);
     }
   }
 

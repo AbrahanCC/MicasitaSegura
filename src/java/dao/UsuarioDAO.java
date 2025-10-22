@@ -35,4 +35,6 @@ public interface UsuarioDAO {
     List<String> catalogoVisita();
 
     String obtenerCorreoPorId(int idUsuario);
+
+    List<String> listarCorreosAdminsActivos();
 }

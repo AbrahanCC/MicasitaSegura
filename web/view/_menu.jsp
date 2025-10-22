@@ -111,6 +111,11 @@
                     <i class="bi bi-credit-card me-1"></i>Gestionar pagos
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="${pageContext.request.contextPath}/residente/mantenimiento">
+                <i class="bi bi-wrench-adjustable-circle me-1"></i>Reportar mantenimiento
+                </a>
+            </li>
         <% } %>
       </ul>
 

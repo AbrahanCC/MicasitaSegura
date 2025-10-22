@@ -63,7 +63,6 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         } catch (Exception e) { throw new RuntimeException(e); }
     }
 
-    // FA1 RN1, RN2, FA3 — tras insertar si es RESIDENTE (3) se envía QR RN3
     @Override
     public boolean crear(Usuario u) {
         String sql = "INSERT INTO usuarios " +
@@ -77,8 +76,8 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             ps.setString(i++, u.getNombre());
             ps.setString(i++, u.getApellidos());
             ps.setString(i++, u.getCorreo());
-            ps.setString(i++, u.getNumeroCasa());  // RN1: puede ser null si es guardia
-            ps.setString(i++, u.getLote());        // RN1: puede ser null si es guardia
+            ps.setString(i++, u.getNumeroCasa());
+            ps.setString(i++, u.getLote());
             ps.setString(i++, u.getUsername());
             ps.setString(i++, u.getPassHash());
             ps.setInt(i++, u.getRolId());
@@ -89,6 +88,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
                 if (rs.next()) u.setId(rs.getInt(1));
             }
 
+            // Si es residente, se genera y envía QR
             if (ok && u.getRolId() == 3) {
                 try {
                     String token = TokenUtil.generateResidentToken(u.getId());
@@ -99,7 +99,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
                                  + "<p>Se ha generado tu <b>código QR de acceso</b>.</p>"
                                  + "<p><b>Nombre:</b> " + u.getNombre() + " " + u.getApellidos() + "</p>"
                                  + "<p><b>Validez del código QR:</b> Permanente</p>"
-                                 + "<p><b>Instrucciones importantes:</b> Guarda este correo o el QR adjunto y preséntalo al ingresar para escaneo.</p>";
+                                 + "<p><b>Guarda este correo o el QR adjunto para tu ingreso.</p>";
                     new MailService().sendWithInlinePng(u.getCorreo(),
                             "Notificación de accesos creados", body, png);
                 } catch (Exception ex) {
@@ -123,8 +123,8 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             ps.setString(i++, u.getNombre());
             ps.setString(i++, u.getApellidos());
             ps.setString(i++, u.getCorreo());
-            ps.setString(i++, u.getNumeroCasa()); // RN1
-            ps.setString(i++, u.getLote());       // RN1
+            ps.setString(i++, u.getNumeroCasa());
+            ps.setString(i++, u.getLote());
             ps.setString(i++, u.getUsername());
             ps.setInt(i++, u.getRolId());
             ps.setBoolean(i++, u.isActivo());
@@ -233,113 +233,114 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         } catch (Exception e) { throw new RuntimeException(e); }
     }
 
-            // ---------- Catálogo de correos ----------
-            @Override
-            public List<String> listarCorreosResidentesActivos() {
-                String sql = "SELECT correo FROM usuarios " +
-                             "WHERE rol_id = 3 AND activo = 1 AND correo IS NOT NULL AND correo <> '' " +
-                             "ORDER BY correo";
-                List<String> out = new ArrayList<>();
-                try (Connection cn = DBConnection.getConnection();
-                     PreparedStatement ps = cn.prepareStatement(sql);
-                     ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) out.add(rs.getString(1));
-                    return out;
-                } catch (Exception e) { throw new RuntimeException(e); }
-            }
-
-        // ---------- Utilidades de búsqueda ----------
-        @Override
-        public Integer findResidenteId(String numeroCasa, String lote) {
-            String sqlConLote =
-                "SELECT id FROM usuarios WHERE rol_id=3 AND activo=1 AND casa=? AND lote=? LIMIT 1";
-            String sqlSoloCasa =
-                "SELECT id FROM usuarios WHERE rol_id=3 AND activo=1 AND casa=? LIMIT 1";
-
-            try (Connection cn = DBConnection.getConnection()) {
-                if (lote != null && !lote.trim().isEmpty()) {
-                    try (PreparedStatement ps = cn.prepareStatement(sqlConLote)) {
-                        ps.setString(1, numeroCasa);
-                        ps.setString(2, lote);
-                        try (ResultSet rs = ps.executeQuery()) {
-                            if (rs.next()) return rs.getInt(1);
-                        }
-                    }
-                }
-                try (PreparedStatement ps = cn.prepareStatement(sqlSoloCasa)) {
-                    ps.setString(1, numeroCasa);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        return rs.next() ? rs.getInt(1) : null;
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    
-            // UsuarioDAOImpl.java
-        public List<String> listarCorreosGuardiasActivos() {
-            String sql = "SELECT correo FROM usuarios " +
-                         "WHERE rol_id=2 AND activo=1 AND correo IS NOT NULL AND correo <> ''";
-            List<String> out = new ArrayList<>();
-            try (Connection cn = DBConnection.getConnection();
-                 PreparedStatement ps = cn.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) out.add(rs.getString(1));
-            } catch (Exception e) { throw new RuntimeException(e); }
+    // ---------- Catálogo de correos ----------
+    @Override
+    public List<String> listarCorreosResidentesActivos() {
+        String sql = "SELECT correo FROM usuarios " +
+                     "WHERE rol_id = 3 AND activo = 1 AND correo IS NOT NULL AND correo <> '' " +
+                     "ORDER BY correo";
+        List<String> out = new ArrayList<>();
+        try (Connection cn = DBConnection.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) out.add(rs.getString(1));
             return out;
+        } catch (Exception e) { throw new RuntimeException(e); }
+    }
+
+    // Nuevo método agregado para el caso de uso de mantenimiento
+    public List<String> listarCorreosAdminsActivos() {
+        String sql = "SELECT correo FROM usuarios " +
+                     "WHERE rol_id=1 AND activo=1 AND correo IS NOT NULL AND correo <> ''";
+        List<String> out = new ArrayList<>();
+        try (Connection cn = DBConnection.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) out.add(rs.getString(1));
+        } catch (Exception e) { throw new RuntimeException(e); }
+        return out;
+    }
+
+    public List<String> listarCorreosGuardiasActivos() {
+        String sql = "SELECT correo FROM usuarios " +
+                     "WHERE rol_id=2 AND activo=1 AND correo IS NOT NULL AND correo <> ''";
+        List<String> out = new ArrayList<>();
+        try (Connection cn = DBConnection.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) out.add(rs.getString(1));
+        } catch (Exception e) { throw new RuntimeException(e); }
+        return out;
+    }
+
+    @Override
+    public Integer findResidenteId(String numeroCasa, String lote) {
+        String sqlConLote =
+            "SELECT id FROM usuarios WHERE rol_id=3 AND activo=1 AND casa=? AND lote=? LIMIT 1";
+        String sqlSoloCasa =
+            "SELECT id FROM usuarios WHERE rol_id=3 AND activo=1 AND casa=? LIMIT 1";
+
+        try (Connection cn = DBConnection.getConnection()) {
+            if (lote != null && !lote.trim().isEmpty()) {
+                try (PreparedStatement ps = cn.prepareStatement(sqlConLote)) {
+                    ps.setString(1, numeroCasa);
+                    ps.setString(2, lote);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) return rs.getInt(1);
+                    }
+                }
+            }
+            try (PreparedStatement ps = cn.prepareStatement(sqlSoloCasa)) {
+                ps.setString(1, numeroCasa);
+                try (ResultSet rs = ps.executeQuery()) {
+                    return rs.next() ? rs.getInt(1) : null;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-            // ---------- Catálogos desde BD ----------
-            // util privado común
-            private List<String> listarCodigosCatalogo(String codigoCatalogo) {
-                String sql =
-                    "SELECT ec.codigo " +
-                    "FROM elemento_catalogo ec " +
-                    "JOIN catalogo c ON c.id_catalogo = ec.id_catalogo " +
-                    "WHERE c.codigo = ? AND ec.activo = 1 " +
-                    "ORDER BY ec.orden, ec.nombre";
-                List<String> out = new ArrayList<>();
-                try (Connection cn = DBConnection.getConnection();
-                     PreparedStatement ps = cn.prepareStatement(sql)) {
-                    ps.setString(1, codigoCatalogo);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        while (rs.next()) out.add(rs.getString(1));
-                    }
-                } catch (Exception e) { throw new RuntimeException(e); }
-                return out;
-            }
-
-            //para el correo de los guardia al enviar un incidnete
-            @Override
-            public String obtenerCorreoPorId(int idUsuario) {
-                // // Devuelve null si no existe o si tiene correo vacío
-                String sql = "SELECT correo FROM usuarios WHERE id=?";
-                try (Connection cn = DBConnection.getConnection();
-                     PreparedStatement ps = cn.prepareStatement(sql)) {
-                    ps.setInt(1, idUsuario);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            String mail = rs.getString(1);
-                            return (mail == null || mail.trim().isEmpty()) ? null : mail.trim();
-                        }
-                    }
-                } catch (Exception e) { throw new RuntimeException(e); }
-                return null;
-            }
-
-    @Override
-    public List<String> catalogoLotes() {           // A..Z
-        return listarCodigosCatalogo("LOTE");
     }
 
     @Override
-    public List<String> catalogoCasas() {           // 001..050
-        return listarCodigosCatalogo("CASA");
+    public String obtenerCorreoPorId(int idUsuario) {
+        String sql = "SELECT correo FROM usuarios WHERE id=?";
+        try (Connection cn = DBConnection.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String mail = rs.getString(1);
+                    return (mail == null || mail.trim().isEmpty()) ? null : mail.trim();
+                }
+            }
+        } catch (Exception e) { throw new RuntimeException(e); }
+        return null;
     }
 
     @Override
-    public List<String> catalogoVisita() {          // ['visita','por_intentos']
-        return listarCodigosCatalogo("VISITA");
+    public List<String> catalogoLotes() { return listarCodigosCatalogo("LOTE"); }
+
+    @Override
+    public List<String> catalogoCasas() { return listarCodigosCatalogo("CASA"); }
+
+    @Override
+    public List<String> catalogoVisita() { return listarCodigosCatalogo("VISITA"); }
+
+    private List<String> listarCodigosCatalogo(String codigoCatalogo) {
+        String sql =
+            "SELECT ec.codigo " +
+            "FROM elemento_catalogo ec " +
+            "JOIN catalogo c ON c.id_catalogo = ec.id_catalogo " +
+            "WHERE c.codigo = ? AND ec.activo = 1 " +
+            "ORDER BY ec.orden, ec.nombre";
+        List<String> out = new ArrayList<>();
+        try (Connection cn = DBConnection.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setString(1, codigoCatalogo);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) out.add(rs.getString(1));
+            }
+        } catch (Exception e) { throw new RuntimeException(e); }
+        return out;
     }
 }
