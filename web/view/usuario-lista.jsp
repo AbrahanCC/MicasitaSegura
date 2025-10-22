@@ -28,7 +28,7 @@
       </div>
       <div class="ms-auto">
         <a class="btn btn-brand" href="<%=ctx%>/usuarios?op=new">
-          <i class="bi bi-person-plus me-1"></i>Nuevo usuario
+          <i class="bi bi-person-plus me-1"></i>Crear usuario
         </a>
       </div>
     </div>

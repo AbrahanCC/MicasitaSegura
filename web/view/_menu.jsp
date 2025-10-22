@@ -72,6 +72,11 @@
                   <i class="bi bi-chat-text me-1"></i>Chat general
               </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/paqueteria?op=list">
+              <i class="bi bi-box-seam me-1"></i>Registrar paquetería
+            </a>
+          </li>
         <% } %>
 
         <%-- Residente --%>

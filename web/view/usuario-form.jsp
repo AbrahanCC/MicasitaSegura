@@ -38,16 +38,16 @@
 
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">DPI Usuario</label>
+          <label class="form-label">DPI del residente</label>
           <input class="form-control" name="dpi" value="${u.dpi}" required pattern="[0-9]{4,25}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Nombre del Usuario</label>
+          <label class="form-label">Nombre</label>
           <input class="form-control" name="nombre" value="${u.nombre}" required>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Apellidos del Usuario</label>
+          <label class="form-label">Apellidos</label>
           <input class="form-control" name="apellidos" value="${u.apellidos}" required>
         </div>
 
@@ -67,7 +67,7 @@
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Rol</label>
+          <label class="form-label">Rol del usuario</label>
           <select class="form-select" name="rolId" id="rolId" required>
             <option value="">Seleccione...</option>
             <c:forEach var="r" items="${roles}">
@@ -109,6 +109,13 @@
         </div>
       </div>
 
+            <div class="col-12 d-flex gap-2">
+        <button class="btn btn-brand" type="submit"><i class="bi bi-search me-1"></i>Buscar</button>
+        <!-- Botón Limpiar formulario -->
+        <a class="btn btn-outline-secondary" href="<%=ctx%>/directorio?op=limpiar">
+          <i class="bi bi-eraser me-1"></i>Limpiar
+        </a>
+      </div>
       <div class="mt-4 d-flex gap-2">
         <button class="btn btn-brand" type="submit"><i class="bi bi-save me-1"></i>Guardar</button>
         <a class="btn btn-outline-secondary" href="<%=ctx%>/usuarios"><i class="bi bi-arrow-left me-1"></i>Volver</a>
