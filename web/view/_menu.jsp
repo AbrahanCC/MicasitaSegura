@@ -1,6 +1,6 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
-  // Roles: 1=ADMIN, 2=GUARDIA, 3=RESIDENTE 
+  // Roles: 1=ADMIN, 2=GUARDIA, 3=RESIDENTE
   Integer _mrol = (Integer) session.getAttribute("rol");
 %>
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
@@ -13,12 +13,16 @@
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-        <%-- Admin --%>
+        <%-- Admin: solo Directorio --%>
         <% if (_mrol != null && _mrol == 1) { %>
+<<<<<<< HEAD
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
               <i class="bi bi-people me-1"></i>Directorio
             </a>
+=======
+          <!-- admin solo Mantenimiento de usuario -->
+>>>>>>> 209ff1c13647255672a9b1a531d32d679b084c32
         <% } %>
 
         <%-- Guardia --%>
@@ -77,21 +81,21 @@
                 <i class="bi bi-chat-text me-1"></i>Chat general
               </a>
           </li> 
-            <li class="nav-item">
-                <a class="nav-link" href="${pageContext.request.contextPath}/residente/reservas">
-                    <i class="bi bi-chat-text me-1"></i>Reservas
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="${pageContext.request.contextPath}/residente/pagos">
-                    <i class="bi bi-credit-card me-1"></i>Gestionar pagos
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="${pageContext.request.contextPath}/residente/mantenimiento">
+          <li class="nav-item">
+              <a class="nav-link" href="${pageContext.request.contextPath}/residente/reservas">
+                  <i class="bi bi-chat-text me-1"></i>Reservas
+              </a>
+          </li>
+          <li class="nav-item">
+              <a class="nav-link" href="${pageContext.request.contextPath}/residente/pagos">
+                  <i class="bi bi-credit-card me-1"></i>Gestionar pagos
+              </a>
+          </li>
+          <li class="nav-item">
+              <a class="nav-link" href="${pageContext.request.contextPath}/residente/mantenimiento">
                 <i class="bi bi-wrench-adjustable-circle me-1"></i>Reportar mantenimiento
-                </a>
-            </li>
+              </a>
+          </li>
         <% } %>
       </ul>
 
