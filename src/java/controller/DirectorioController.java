@@ -16,13 +16,21 @@ public class DirectorioController extends HttpServlet {
     private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
 
-        // --- Carga de catálogos  ---
-        req.setAttribute("lotes", usuarioDAO.catalogoLotes());
-        req.setAttribute("casas", usuarioDAO.catalogoCasas());
+        // --- Carga de catálogos (A..Z y 001..050) ---
+        List<String> lotes = usuarioDAO.catalogoLotes();
+        List<String> casas = usuarioDAO.catalogoCasas();
+        req.setAttribute("lotes", lotes);
+        req.setAttribute("casas", casas);
 
-        // --- Acceso a opción Directorio Residencial ---
+        // (Opcional) cachear en sesión para reuso en la vista
+        HttpSession session = req.getSession();
+        session.setAttribute("lotes", lotes);
+        session.setAttribute("casas", casas);
+
+        // --- Opción ---
         String op = req.getParameter("op");
 
         // --- Limpiar formulario ---
@@ -32,7 +40,7 @@ public class DirectorioController extends HttpServlet {
             return;
         }
 
-        // --- Captura de parámetros opcionales (RN1) ---
+        // --- Captura de parámetros (opcionales) ---
         String nombres    = p(req, "nombres");
         String apellidos  = p(req, "apellidos");
         String lote       = p(req, "lote");
@@ -41,34 +49,32 @@ public class DirectorioController extends HttpServlet {
         boolean loteVacio = lote.isEmpty();
         boolean numVacio  = numeroCasa.isEmpty();
 
-        // ---número de casa incompleto ---
+        // --- Validación: lote y número deben venir juntos o ninguno ---
         if (loteVacio ^ numVacio) {
-            req.setAttribute("error", "Por favor, debe seleccionar un lote y un número de casa o ninguno de los dos.");
+            req.setAttribute("error", "Por favor, seleccione Lote y Número de casa, o ninguno de los dos.");
             req.getRequestDispatcher("/view/residente/directorio.jsp").forward(req, resp);
             return;
         }
 
-        // --- “Buscar”  ---
+        // --- Búsqueda si hay filtros ---
         boolean hayFiltros = !nombres.isEmpty() || !apellidos.isEmpty() || (!loteVacio && !numVacio);
 
         if (hayFiltros) {
             List<Usuario> lista = usuarioDAO.buscarDirectorio(nombres, apellidos, lote, numeroCasa);
 
-            // --- FA2: No se encontró información ---
             if (lista.isEmpty()) {
                 req.setAttribute("msg", "No se encontró ningún usuario con los datos ingresados.");
             }
-
-            // --- mostrar resultados ---
             req.setAttribute("lista", lista);
         }
 
-        // --- Mostrar formulario con catálogos cargados ---
+        // --- Mostrar vista ---
         req.getRequestDispatcher("/view/residente/directorio.jsp").forward(req, resp);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
         doGet(req, resp);
     }
 

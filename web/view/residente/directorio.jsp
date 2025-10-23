@@ -12,11 +12,11 @@ String qApellidos  = request.getParameter("apellidos")   != null ? request.getPa
 String qLote       = request.getParameter("lote")        != null ? request.getParameter("lote")        : "";
 String qNumeroCasa = request.getParameter("numeroCasa")  != null ? request.getParameter("numeroCasa")  : "";
 
-// Catálogos desde el Controller (A..Z y 1..50)
+// Catálogos desde el Controller
 List<String> lotesList = (List<String>) request.getAttribute("lotes");
 List<String> casasList = (List<String>) request.getAttribute("casas");
 
-// Fallback por si llegan nulos (reutiliza sesión)
+// Fallback por si llegan nulos
 if (lotesList == null || casasList == null) {
     lotesList = (List<String>) session.getAttribute("lotes");
     casasList = (List<String>) session.getAttribute("casas");
@@ -33,36 +33,29 @@ if (lotesList == null || casasList == null) {
   <link href="<%=ctx%>/assets/css/app.css" rel="stylesheet">
 
   <script>
-    // --- Validaciones Frontend ---
     function validarDir(e){
       const nombres   = document.getElementById('nombres').value.trim();
       const apellidos = document.getElementById('apellidos').value.trim();
       const lote      = document.getElementById('lote').value.trim();
       const numero    = document.getElementById('numeroCasa').value.trim();
-
-      // RN1: solo caracteres alfanuméricos permitidos
       const alfa = /^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9 .-]{0,60}$/;
 
       if (nombres && !alfa.test(nombres)){
-        showMsg('Solo caracteres alfanuméricos en Nombres.', 'warning'); // RN1
+        showMsg('Solo caracteres alfanuméricos en Nombres.', 'warning');
         e.preventDefault(); return false;
       }
       if (apellidos && !alfa.test(apellidos)){
-        showMsg('Solo caracteres alfanuméricos en Apellidos.', 'warning'); // RN1
+        showMsg('Solo caracteres alfanuméricos en Apellidos.', 'warning');
         e.preventDefault(); return false;
       }
-
-      // FA3: ambos campos o ninguno
       const parcial = (lote && !numero) || (!lote && numero);
       if (parcial){
-        showMsg('Debe seleccionar lote y número de casa, o ninguno.', 'danger'); // FA3
+        showMsg('Debe seleccionar lote y número de casa, o ninguno.', 'danger');
         e.preventDefault(); return false;
       }
-
       return true;
     }
 
-    // Muestra mensajes en frontend
     function showMsg(text, type){
       const box = document.getElementById('msgFront');
       if (!text){ box.className=''; box.innerHTML=''; return; }
@@ -74,7 +67,6 @@ if (lotesList == null || casasList == null) {
 </head>
 <body>
 
-<!-- Visible para guardia y residente -->
 <%@ include file="/view/_menu.jsp" %>
 
 <div class="container py-4 d-flex justify-content-center">
@@ -87,20 +79,16 @@ if (lotesList == null || casasList == null) {
       </div>
     </div>
 
-    <!-- Mensajes del backend -->
     <% if (error != null) { %>
-      <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i><%=error%></div> <!-- Visible para guardia y residente -->
+      <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i><%=error%></div>
     <% } %>
     <% if (msg != null) { %>
-      <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i><%=msg%></div> <!-- Visible para guardia y residente -->
+      <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i><%=msg%></div>
     <% } %>
 
-    <!-- Mensajes del frontend -->
     <div id="msgFront"></div>
 
-    <!-- Formulario de búsqueda -->
-    <!-- todos los campos opcionales -->
-      <form class="row g-3 mb-4" method="get" action="<%=ctx%>/directorio" onsubmit="return validarDir(event);">
+    <form class="row g-3 mb-4" method="get" action="<%=ctx%>/directorio" onsubmit="return validarDir(event);">
       <div class="col-md-6">
         <label class="form-label">Nombres del residente</label>
         <input id="nombres" class="form-control" type="text" name="nombres"
@@ -117,13 +105,10 @@ if (lotesList == null || casasList == null) {
         <label class="form-label">Lote</label>
         <select id="lote" class="form-select" name="lote">
           <option value="">(Sin lote)</option>
-          <% if (lotesList != null) {
-               for (String l : lotesList) {
-                 String sel = l.equalsIgnoreCase(qLote) ? "selected" : "";
-          %>
+          <% if (lotesList != null) for (String l : lotesList) { 
+               String sel = l.equalsIgnoreCase(qLote) ? "selected" : ""; %>
             <option value="<%=l%>" <%=sel%>><%=l%></option>
-          <%   }
-             } %>
+          <% } %>
         </select>
       </div>
 
@@ -131,13 +116,10 @@ if (lotesList == null || casasList == null) {
         <label class="form-label">Número de casa</label>
         <select id="numeroCasa" class="form-select" name="numeroCasa">
           <option value="">(Sin número)</option>
-          <% if (casasList != null) {
-               for (String c : casasList) {
-                 String sel = c.equalsIgnoreCase(qNumeroCasa) ? "selected" : "";
-          %>
+          <% if (casasList != null) for (String c : casasList) { 
+               String sel = c.equalsIgnoreCase(qNumeroCasa) ? "selected" : ""; %>
             <option value="<%=c%>" <%=sel%>><%=c%></option>
-          <%   }
-             } %>
+          <% } %>
         </select>
       </div>
 
@@ -145,22 +127,19 @@ if (lotesList == null || casasList == null) {
         <button class="btn btn-brand" type="submit">
           <i class="bi bi-search me-1"></i>Buscar
         </button>
-        <!-- FA1: limpiar filtros -->
         <a class="btn btn-outline-secondary" href="<%=ctx%>/directorio?op=limpiar">
           <i class="bi bi-eraser me-1"></i>Limpiar
         </a>
       </div>
     </form>
 
-    <!-- Tabla de resultados -->
-    <!-- Visible para guardia y residente -->
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
-            <th>Nombre completo del Usuario</th>
+            <th>Nombre completo</th>
             <th>Número de casa</th>
-            <th>Correo electrónico</th>
+            <th>Correo</th>
           </tr>
         </thead>
         <tbody>
@@ -171,7 +150,7 @@ if (lotesList == null || casasList == null) {
         <%
           } else if (lista.isEmpty()) {
         %>
-          <tr><td colspan="3">No se encontró ningún usuario con los datos ingresados.</td></tr> <!-- FA2 -->
+          <tr><td colspan="3">No se encontró ningún usuario con los datos ingresados.</td></tr>
         <%
           } else {
             for (Usuario u : lista) {
