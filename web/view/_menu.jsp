@@ -19,30 +19,6 @@
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
               <i class="bi bi-people me-1"></i>Directorio
             </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/visitantes">Visitantes</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/visitantes?op=new">
-              <i class="bi bi-person-plus me-1"></i>Registrar visitante
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/view/guardia/scan.jsp">
-              <i class="bi bi-qr-code-scan me-1"></i>Escanear QR
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/guardia/avisos">
-              <i class="bi bi-megaphone me-1"></i>Enviar avisos
-            </a>
-          </li>
-          <li class="nav-item">
-              <a class="nav-link" href="${pageContext.request.contextPath}/CU6/chat.jsp">
-                  <i class="bi bi-chat-text me-1"></i>Chat general
-              </a>
-          </li>
         <% } %>
 
         <%-- Guardia --%>
@@ -74,7 +50,7 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/paqueteria?op=list">
-              <i class="bi bi-box-seam me-1"></i>Registrar paquetería
+              <i class="bi bi-box-seam me-1"></i>Registrar paqueterÃ­a
             </a>
           </li>
         <% } %>

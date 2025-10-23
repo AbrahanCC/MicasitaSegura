@@ -44,12 +44,17 @@ public class UsuarioController extends HttpServlet {
                 req.getRequestDispatcher("/view/usuario-form.jsp").forward(req, resp);
                 break;
                 
-            //FA2 eliminar y redirigir a listado
-            case "del":
-                usuarioDAO.eliminar(Integer.parseInt(req.getParameter("id")));
+            // FA2 eliminar y redirigir a listado + mensaje flash
+            case "del": {
+                int idDel = Integer.parseInt(req.getParameter("id"));
+                boolean ok = usuarioDAO.eliminar(idDel);
+                HttpSession session = req.getSession();
+                session.setAttribute(ok ? "flashOk" : "flashError",
+                                     ok ? "Usuario eliminado correctamente." :
+                                          "No se pudo eliminar el usuario.");
                 resp.sendRedirect(req.getContextPath() + "/usuarios");
                 break;
-
+            }
             default:
                 // Flujo básico: mostrar lista
                 req.setAttribute("data", usuarioDAO.listar());

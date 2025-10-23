@@ -29,6 +29,16 @@
       </div>
     </div>
 
+    <!-- ✅ MENSAJES FLASH (éxito / error) -->
+    <c:if test="${not empty sessionScope.flashOk}">
+      <div class="alert alert-success">${sessionScope.flashOk}</div>
+      <c:remove var="flashOk" scope="session"/>
+    </c:if>
+    <c:if test="${not empty sessionScope.flashError}">
+      <div class="alert alert-danger">${sessionScope.flashError}</div>
+      <c:remove var="flashError" scope="session"/>
+    </c:if>
+
     <c:if test="${not empty error}">
       <div class="alert alert-danger">${error}</div>
     </c:if>
@@ -63,7 +73,7 @@
 
         <div class="col-md-6">
           <label class="form-label">Contraseña</label>
-          <input class="form-control" type="password" name="pass" placeholder="•••••••">
+          <input class="form-control" type="password" name="pass">
         </div>
 
         <div class="col-md-6">
@@ -79,7 +89,7 @@
         <!-- Lote -->
         <div class="col-sm-3">
           <label class="form-label">Lote</label>
-          <select class="form-select" name="lote" id="lote" required>
+          <select class="form-select" name="lote" id="lote">
             <option value="">Seleccione…</option>
             <% if (lotes != null) for (String l : lotes) { %>
               <option value="<%=l%>">Lote <%=l%></option>
@@ -90,10 +100,10 @@
         <!-- Número de casa -->
         <div class="col-sm-3">
           <label class="form-label">Número de casa</label>
-          <select class="form-select" name="numeroCasa" id="numeroCasa" required>
+          <select class="form-select" name="numeroCasa" id="numeroCasa">
             <option value="">Seleccione…</option>
-            <% if (casas != null) for (String c : casas) { 
-                 int n = 0; 
+            <% if (casas != null) for (String c : casas) {
+                 int n = 0;
                  try { n = Integer.parseInt(c); } catch(Exception ignore) {}
             %>
               <option value="<%=c%>">Casa <%= (n > 0 ? n : c) %></option>
@@ -109,16 +119,14 @@
         </div>
       </div>
 
-            <div class="col-12 d-flex gap-2">
-        <button class="btn btn-brand" type="submit"><i class="bi bi-search me-1"></i>Buscar</button>
+      <div class="mt-4 d-flex gap-2">
         <!-- Botón Limpiar formulario -->
-        <a class="btn btn-outline-secondary" href="<%=ctx%>/directorio?op=limpiar">
+        <a href="#" class="btn btn-outline-secondary"
+           onclick="document.querySelector('form').reset(); return false;">
           <i class="bi bi-eraser me-1"></i>Limpiar
         </a>
-      </div>
-      <div class="mt-4 d-flex gap-2">
         <button class="btn btn-brand" type="submit"><i class="bi bi-save me-1"></i>Guardar</button>
-        <a class="btn btn-outline-secondary" href="<%=ctx%>/usuarios"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+        <a class="btn btn-outline-secondary" href="<%=ctx%>/usuarios"><i class="bi bi-arrow-left me-1"></i>Cancelar</a>
       </div>
     </form>
   </div>
@@ -126,7 +134,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // Solo RESIDENTE (3) debe llenar lote/numeroCasa. GUARDIA (2) y ADMIN (1) -> opcional
+
+  //  - Guardia  (2): lote/numeroCasa DESHABILITADOS y se limpian
   (function () {
     const rolSel = document.getElementById('rolId');
     const lote = document.getElementById('lote');
@@ -135,12 +144,25 @@
     function applyRules() {
       const rol = parseInt(rolSel.value || "0", 10);
       const isResidente = (rol === 3);
+      const isGuardia   = (rol === 2);
+
+      // requeridos solo para residente
       lote.required = isResidente;
       numeroCasa.required = isResidente;
+
+      // deshabilitar si es guardia
+      lote.disabled = isGuardia;
+      numeroCasa.disabled = isGuardia;
+
+      // si se deshabilitan, limpiar valores
+      if (isGuardia) {
+        lote.value = "";
+        numeroCasa.value = "";
+      }
     }
     if (rolSel) {
       rolSel.addEventListener('change', applyRules);
-      applyRules();
+      applyRules(); // inicial
     }
   })();
 </script>

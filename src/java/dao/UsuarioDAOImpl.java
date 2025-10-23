@@ -136,7 +136,8 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
     @Override
     public boolean eliminar(int id) {
-        String sql = "DELETE FROM usuarios WHERE id=?";
+        // ELIMINACIÓN LÓGICA -> evita violaciones de FK y conserva historial
+        String sql = "UPDATE usuarios SET activo = 0 WHERE id = ?";
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -151,7 +152,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             "SELECT u.id,u.dpi,u.nombre,u.apellidos,u.correo,u.casa,u.username,u.password_hash," +
             "u.rol_id,u.estado,u.activo,r.nombre AS rol_nombre " +
             "FROM usuarios u JOIN roles r ON r.id = u.rol_id " +
-            "WHERE (u.username=? OR u.correo=?) LIMIT 1";
+            "WHERE (u.username=? OR u.correo=?) AND u.activo=1 LIMIT 1";
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, userOrMail);
@@ -168,7 +169,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
             "SELECT u.id,u.dpi,u.nombre,u.apellidos,u.correo,u.casa,u.lote,u.username,u.password_hash," +
             "u.rol_id,u.estado,u.activo,r.nombre AS rol_nombre " +
             "FROM usuarios u JOIN roles r ON r.id = u.rol_id " +
-            "WHERE u.correo=? LIMIT 1";
+            "WHERE u.correo=? AND u.activo=1 LIMIT 1";
         try (Connection cn = DBConnection.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, correo);
