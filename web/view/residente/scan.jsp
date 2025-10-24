@@ -3,7 +3,7 @@
   // Autorización: ADMIN(1) y GUARDIA(2)
   String ctx = request.getContextPath();
   Integer rol = (Integer) session.getAttribute("rol");
-  if (rol == null || (rol != 1 && rol != 2)) {
+  if (rol == null || (rol != 1 && rol != 3)) {
     response.sendRedirect(ctx + "/login");
     return;
   }

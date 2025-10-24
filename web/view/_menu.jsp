@@ -29,11 +29,6 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/view/guardia/scan.jsp">
-              <i class="bi bi-qr-code-scan me-1"></i>Escanear QR
-            </a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/guardia/avisos">
               <i class="bi bi-megaphone me-1"></i>Enviar avisos
             </a>
@@ -63,6 +58,11 @@
             </a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/view/residente/scan.jsp">
+              <i class="bi bi-qr-code-scan me-1"></i>Escanear QR
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
               <i class="bi bi-people me-1"></i>Directorio
             </a>
@@ -74,7 +74,7 @@
           </li>
           <li class="nav-item">
               <a class="nav-link" href="${pageContext.request.contextPath}/residente/reservas">
-                  <i class="bi bi-chat-text me-1"></i>Reservas
+                  <i class="bi bi-calendar-event me-1"></i>Reservas
               </a>
           </li>
           <li class="nav-item">

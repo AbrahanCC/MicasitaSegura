@@ -38,6 +38,17 @@ public class AuthFilter implements Filter {
 
     Integer rol = (Integer) s.getAttribute("rol");
 
+    // --- EXCEPCIÓN: permitir /view/guardia/scan.jsp a admin(1), guardia(2) y residente(3) ---
+    if (uri.equals(ctx + "/view/guardia/scan.jsp")) {
+      if (rol == null || (rol != 1 && rol != 2 && rol != 3)) {
+        resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Acceso no autorizado");
+        return;
+      }
+      c.doFilter(rq, rs);
+      return;
+    }
+
+    // --- Resto de protecciones por área ---
     if (uri.startsWith(ctx + "/view/admin/")) {
       if (rol == null || rol != 1) { resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Acceso solo para administradores"); return; }
     }
