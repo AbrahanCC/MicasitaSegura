@@ -1,6 +1,5 @@
 package controller;
 
-// Valida tokens de residente/visita y abre talanquera
 import dao.AccesoLogDAO;
 import dao.AccesoLogDAOImpl;
 import dao.VisitanteDAO;
@@ -13,6 +12,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
 
+// Valida tokens de residente/visita y abre talanquera
 @WebServlet("/api/validate")
 public class ValidateServlet extends HttpServlet {
 
@@ -50,7 +50,7 @@ public class ValidateServlet extends HttpServlet {
           ok = visitanteDao.marcarConsumidoPorToken(token);
           reason = ok ? "ok" : "no_se_pudo_consumir";
           // sumar 1 localmente si se consumió (evitamos otro SELECT)
-          usedCount = ok ? (vigente.getUsedCount() + 1) : vigente.getUsedCount();
+          usedCount = ok ? (safeInt(vigente.getUsosRealizados()) + 1) : safeInt(vigente.getUsosRealizados());
         } else {
           ok = false;
           reason = "no_vigente";
@@ -106,4 +106,5 @@ public class ValidateServlet extends HttpServlet {
   private static String trim(String s) { return s == null ? null : s.trim(); }
   private static boolean isEmpty(String s) { return s == null || s.isEmpty(); }
   private static String dflt(String s, String d) { s = trim(s); return isEmpty(s) ? d : s; }
+  private static int safeInt(Integer n) { return n == null ? 0 : n; }
 }

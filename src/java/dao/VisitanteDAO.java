@@ -20,4 +20,7 @@ public interface VisitanteDAO {
 
     // Rechaza el acceso de un visitante
     boolean rechazar(int idVisitante, Integer modificadoPor);
+    List<String> catalogoVisita();
+    List<String> catalogoCasas();
+    List<String> catalogoLotes();
 }

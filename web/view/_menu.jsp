@@ -1,6 +1,5 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
-  // Roles: 1=ADMIN, 2=GUARDIA, 3=RESIDENTE
+  // 1=ADMIN, 2=GUARDIA, 3=RESIDENTE
   Integer _mrol = (Integer) session.getAttribute("rol");
 %>
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
@@ -13,16 +12,13 @@
     <div class="collapse navbar-collapse" id="navMain">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-        <%-- Admin: solo Directorio --%>
+        <%-- Admin --%>
         <% if (_mrol != null && _mrol == 1) { %>
-<<<<<<< HEAD
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
               <i class="bi bi-people me-1"></i>Directorio
             </a>
-=======
-          <!-- admin solo Mantenimiento de usuario -->
->>>>>>> 209ff1c13647255672a9b1a531d32d679b084c32
+          </li>
         <% } %>
 
         <%-- Guardia --%>
@@ -30,11 +26,6 @@
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
               <i class="bi bi-people me-1"></i>Directorio
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/visitantes?op=new">
-              <i class="bi bi-person-plus me-1"></i>Registrar visitante
             </a>
           </li>
           <li class="nav-item">
@@ -54,13 +45,18 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/paqueteria?op=list">
-              <i class="bi bi-box-seam me-1"></i>Registrar paqueterÃ­a
+              <i class="bi bi-box-seam me-1"></i>Registrar paqueter�a
             </a>
           </li>
         <% } %>
 
         <%-- Residente --%>
         <% if (_mrol != null && _mrol == 3) { %>
+          <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/visitantes">
+              <i class="bi bi-person-plus me-1"></i>Registrar visitante
+            </a>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/view/residente/qr.jsp">
               <i class="bi bi-qr-code me-1"></i>Mi QR
@@ -72,15 +68,10 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/visitantes?op=new">
-              <i class="bi bi-person-plus me-1"></i>Registrar visitante
-            </a>
-          </li>
-          <li class="nav-item">
               <a class="nav-link" href="${pageContext.request.contextPath}/chat/nuevo">
                 <i class="bi bi-chat-text me-1"></i>Chat general
               </a>
-          </li> 
+          </li>
           <li class="nav-item">
               <a class="nav-link" href="${pageContext.request.contextPath}/residente/reservas">
                   <i class="bi bi-chat-text me-1"></i>Reservas
