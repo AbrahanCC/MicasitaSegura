@@ -56,9 +56,7 @@ public class VisitanteController extends HttpServlet {
         }
     }
 
-    // ===============================
-    // POST: Cancelar visita (por botón “Cancelar visita”)
-    // ===============================
+    // POST: Cancelar visita por botón Cancelar visita
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {

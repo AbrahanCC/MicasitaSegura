@@ -19,7 +19,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Registro de reservas</title>
+  <title>Reservas</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 </head>
@@ -43,7 +43,7 @@
 
     <div class="card shadow-sm">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h5 class="m-0"><i class="bi bi-calendar-plus me-1"></i> Registro de reservas</h5>
+        <h5 class="m-0"><i class="bi bi-calendar-plus me-1"></i> Reservas</h5>
         <!-- Ver mis reservas (lista) -->
         <a class="btn btn-link" href="<%= ctx %>/residente/reservas?action=listar">
           <i class="bi bi-list-ul me-1"></i> Ver mis reservas
@@ -62,7 +62,7 @@
 
           <!-- RN1: Salón para reservar -->
           <div class="col-12">
-            <label class="form-label">Area para reservar</label>
+            <label class="form-label">Salon reservado</label>
             <select name="area_id" class="form-select" required <%= hayAreas ? "" : "disabled" %>>
               <option value="">-- Seleccionar --</option>
               <% for (AreaComun a : areas) { %>
@@ -82,17 +82,17 @@
           </div>
 
           <div class="col-md-6">
-            <label class="form-label">Fecha *</label>
+            <label class="form-label">Fecha reservada*</label>
             <input type="date" name="fecha" class="form-control" required <%= hayAreas ? "" : "disabled" %>/>
           </div>
 
           <div class="col-md-6">
-            <label class="form-label">Hora Inicio *</label>
+            <label class="form-label">Hora Inicio reserva *</label>
             <input type="time" name="hora_inicio" class="form-control" required <%= hayAreas ? "" : "disabled" %>/>
           </div>
 
           <div class="col-md-6">
-            <label class="form-label">Hora Fin *</label>
+            <label class="form-label">Hora Fin reverva*</label>
             <input type="time" name="hora_fin" class="form-control" required <%= hayAreas ? "" : "disabled" %>/>
           </div>
 
@@ -102,7 +102,7 @@
             </button>
             <!-- Cancelar: te lleva a Mi QR -->
             <a href="<%= ctx %>/view/residente/qr.jsp" class="btn btn-outline-secondary">
-              <i class="bi bi-x-lg me-1"></i> Cancelar
+              <i class="bi bi-x-lg me-1"></i> Cancelar reserva
             </a>
           </div>
         </form>

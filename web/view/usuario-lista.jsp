@@ -49,8 +49,8 @@
         <thead class="table-light">
           <tr>
             <th>DPI Usuario</th>
-            <th>Nombre</th>
-            <th>Apellidos</th>
+            <th>Nombre del usuario</th>
+            <th>Apellidos del usuario</th>
             <th>Correo</th>
             <th>Número de casa</th>
             <th>Rol</th>

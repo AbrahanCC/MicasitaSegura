@@ -37,7 +37,7 @@
 
     <div class="d-grid gap-3">
       <a class="btn btn-outline-secondary btn-lg" href="${pageContext.request.contextPath}/directorio">
-        <i class="bi bi-book me-2"></i>Ver Directorio
+        <i class="bi bi-book me-2"></i>Directorio Residencial
       </a>
 
       <a class="btn btn-brand btn-lg" href="${pageContext.request.contextPath}/view/guardia/scan.jsp?auto=1">

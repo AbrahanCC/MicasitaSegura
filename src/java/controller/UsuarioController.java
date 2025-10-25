@@ -73,7 +73,6 @@ public class UsuarioController extends HttpServlet {
         String nombre     = trim(req.getParameter("nombre"));
         String apellidos  = trim(req.getParameter("apellidos"));
         String correo     = trim(req.getParameter("correo"));
-        // ACEPTA AMBOS NOMBRES: numeroCasa o casa
         String numeroCasa = firstNonEmpty(trim(req.getParameter("numeroCasa")), trim(req.getParameter("casa")));
         String lote       = trim(req.getParameter("lote"));
         String username   = trim(req.getParameter("username"));

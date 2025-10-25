@@ -38,8 +38,9 @@
         <thead class="table-light">
           <tr>
             <th>Fecha registro</th>
-            <th>Nombre</th>
-            <th>DPI</th>
+            <th>Nombre del visitante</th>
+            <th>DPI del visitante</th>
+            <th>Correo visitante</th> 
             <th>Tipo de visita</th>
             <th>Destino</th>
             <th>Estado</th>
@@ -50,7 +51,7 @@
         <%
           if (data == null || data.isEmpty()) {
         %>
-          <tr><td colspan="7" class="text-center text-muted">No hay registros.</td></tr>
+          <tr><td colspan="8" class="text-center text-muted">No hay registros.</td></tr>
         <%
           } else {
             for (Visitante v : data) {
@@ -61,8 +62,9 @@
             <td><%= v.getCreadoEn() != null ? v.getCreadoEn() : "" %></td>
             <td><%= v.getNombre() %></td>
             <td><%= v.getDpi() != null ? v.getDpi() : "" %></td>
+            <td><%= v.getCorreo() != null ? v.getCorreo() : "" %></td> <!-- NUEVO -->
             <td><%= v.getTipoVisita() != null ? v.getTipoVisita() : "-" %></td>
-            <td><%= lote + "-" + casa %></td>
+            <td><%= (lote.isEmpty() && casa.isEmpty()) ? "-" : (lote + "-" + casa) %></td>
             <td>
               <span class="badge 
                 <%= "activo".equalsIgnoreCase(v.getEstado()) ? "text-bg-success" :

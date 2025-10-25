@@ -1,5 +1,5 @@
 package controller;
-
+//abrir la talanquera sin qr 
 import service.GateService;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;

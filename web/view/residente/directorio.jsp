@@ -137,9 +137,9 @@ if (lotesList == null || casasList == null) {
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
-            <th>Nombre completo</th>
+            <th>Nombre completo del usuario</th>
             <th>Número de casa</th>
-            <th>Correo</th>
+            <th>Correo electronico</th>
           </tr>
         </thead>
         <tbody>

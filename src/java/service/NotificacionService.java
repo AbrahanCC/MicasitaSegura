@@ -1,11 +1,17 @@
 package service;
 
+import dao.UsuarioDAO;
+import dao.UsuarioDAOImpl;
+import model.Aviso;
+import util.DBConnection;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import model.Aviso;
-import util.DBConnection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Inserta correos en notif_outbox y registra evento en notif_log.
@@ -23,6 +29,8 @@ public class NotificacionService {
 
     private static final String SQL_LOG =
         "INSERT INTO notif_log (notif_id, event, detail, created_at) VALUES (?, ?, ?, NOW())";
+
+    private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
 
     public long enqueueEmail(String to, String subject, String htmlBody) {
         if (to == null || to.isEmpty()) return 0L;
@@ -61,7 +69,53 @@ public class NotificacionService {
         return enqueueEmail(to, subject, body);
     }
 
+    /**
+     * Procesa el aviso:
+     *  - Si destinoTipo = "UNO": envía al correo específico.
+     *  - Si destinoTipo = "ALL": obtiene correos de residentes activos y envía a todos.
+     * Devuelve la cantidad de notificaciones encoladas exitosamente.
+     */
     public int crearYEnviar(Aviso a) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (a == null) return 0;
+
+        String tipo = a.getDestinatarioTipo() == null ? "" : a.getDestinatarioTipo().trim().toUpperCase();
+        String subject = a.getAsunto() == null ? "" : a.getAsunto().trim();
+        String body    = a.getMensaje() == null ? "" : a.getMensaje().trim();
+
+        if (subject.isEmpty() || body.isEmpty()) {
+            // No hay nada que encolar si faltan datos esenciales
+            return 0;
+        }
+
+        // Armar lista de destinatarios según el tipo
+        Set<String> destinatarios = new LinkedHashSet<>();
+
+        if ("UNO".equals(tipo)) {
+            String email = a.getDestinatarioEmail() == null ? "" : a.getDestinatarioEmail().trim();
+            if (!email.isEmpty()) destinatarios.add(email);
+        } else if ("ALL".equals(tipo)) {
+            try {
+                List<String> correos = usuarioDAO.listarCorreosResidentesActivos();
+                if (correos != null) {
+                    for (String c : correos) {
+                        if (c != null && !c.trim().isEmpty()) destinatarios.add(c.trim());
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[NotificationService] Error obteniendo correos ALL: " + e.getMessage());
+            }
+        } else {
+            // Tipo desconocido
+            return 0;
+        }
+
+        if (destinatarios.isEmpty()) return 0;
+
+        int encolados = 0;
+        for (String to : destinatarios) {
+            long id = enqueueEmail(to, subject, body);
+            if (id > 0) encolados++;
+        }
+        return encolados;
     }
 }

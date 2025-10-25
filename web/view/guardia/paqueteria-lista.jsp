@@ -77,7 +77,7 @@
               <tr>
                 <th>#</th>
                 <th>Número de guía</th>
-                <th>Casa</th>
+                <th>Numero de casa del destinatario</th>
                 <th>Lote</th>
                 <th>Fecha recepción</th>
                 <th class="text-end">Acciones</th>

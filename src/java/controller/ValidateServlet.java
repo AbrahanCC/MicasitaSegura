@@ -72,7 +72,7 @@ public class ValidateServlet extends HttpServlet {
         return;
       }
 
-      // === Token de VISITA ===
+      // === Token de VISITA donde se consume ===
       Visitante vigente = visitanteDao.obtenerPaseVigentePorToken(token);
       if (vigente != null) {
         visitanteIdLog = vigente.getId();

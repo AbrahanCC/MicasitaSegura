@@ -14,18 +14,14 @@
 
         <%-- Admin --%>
         <% if (_mrol != null && _mrol == 1) { %>
-          <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
-              <i class="bi bi-people me-1"></i>Directorio
-            </a>
-          </li>
+          
         <% } %>
 
         <%-- Guardia --%>
         <% if (_mrol != null && _mrol == 2) { %>
           <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/directorio">
-              <i class="bi bi-people me-1"></i>Directorio
+              <i class="bi bi-people me-1"></i>Directorio Residencial
             </a>
           </li>
           <li class="nav-item">
@@ -74,7 +70,7 @@
           </li>
           <li class="nav-item">
               <a class="nav-link" href="${pageContext.request.contextPath}/residente/reservas">
-                  <i class="bi bi-calendar-event me-1"></i>Reservas
+                  <i class="bi bi-calendar-event me-1"></i>Gestionar reservas
               </a>
           </li>
           <li class="nav-item">
@@ -84,7 +80,7 @@
           </li>
           <li class="nav-item">
               <a class="nav-link" href="${pageContext.request.contextPath}/residente/mantenimiento">
-                <i class="bi bi-wrench-adjustable-circle me-1"></i>Reportar mantenimiento
+                <i class="bi bi-wrench-adjustable-circle me-1"></i>Reportes de mantenimiento
               </a>
           </li>
         <% } %>
