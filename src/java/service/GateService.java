@@ -8,7 +8,7 @@ public class GateService {
 
   // Cambia aquí la IP por la que necesites en cada sitio
   private static String base() {
-    String host = System.getProperty("ESP_HOST", "http://192.168.1.5"); // <— IP por defecto
+    String host = System.getProperty("ESP_HOST", "http://192.168.1.200"); // <— IP por defecto
     if (host.endsWith("/")) host = host.substring(0, host.length() - 1);
     return host;
   }

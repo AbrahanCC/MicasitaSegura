@@ -134,28 +134,29 @@ public class VisitanteDAOImpl implements VisitanteDAO {
     }
 
     // Pase vigente por token 
-    @Override
-    public Visitante obtenerPaseVigentePorToken(String token) {
-        final String sql =
-            "SELECT id, usuario_id, nombre, dpi, motivo, correo, token, estado, tipo_visita, " +
-            "       lote, casa, primer_uso_en, ultimo_uso_en, qr_fin, creado_en, usos_realizados, usos_max " +
-            "FROM visitantes " +
-            "WHERE token=? " +
-            "  AND estado IN ('emitido','activo') " +
-            "  AND COALESCE(usos_realizados,0) < COALESCE(usos_max,2) " +
-            "  AND ( tipo_visita='por_intentos' " +
-            "     OR (tipo_visita='visita' AND (qr_fin IS NULL OR qr_fin >= NOW())) ) " +
-            "LIMIT 1";
-        try (Connection cn = DBConnection.getConnection();
-             PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1, token);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? map(rs) : null;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+@Override
+public Visitante obtenerPaseVigentePorToken(String token) {
+    final String sql =
+        "SELECT id, usuario_id, nombre, dpi, motivo, correo, token, estado, tipo_visita, " +
+        "       lote, casa, primer_uso_en, ultimo_uso_en, qr_fin, creado_en, usos_realizados, usos_max " +
+        "FROM visitantes " +
+        "WHERE token=? " +
+        "  AND estado IN ('emitido','activo') " +
+        "  AND ( " +
+        "        (tipo_visita='por_intentos' AND COALESCE(usos_realizados,0) < COALESCE(usos_max,2)) " +
+        "     OR (tipo_visita='visita'       AND (qr_fin IS NULL OR qr_fin >= NOW())) " +
+        "      ) " +
+        "LIMIT 1";
+    try (Connection cn = DBConnection.getConnection();
+         PreparedStatement ps = cn.prepareStatement(sql)) {
+        ps.setString(1, token);
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? map(rs) : null;
         }
+    } catch (Exception e) {
+        throw new RuntimeException(e);
     }
+}
 
     // onsumir un uso y marcar 'consumido' si llega al tope 
     @Override
